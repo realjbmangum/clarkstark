@@ -6,7 +6,7 @@ pages_build_output_dir = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "clark-stark-workout"
-database_id = "08e5fea93c464a5a907e39415490fee2"
+database_id = "0dca19c9-6f87-4d70-9dc7-53fe9d5d51bf"
 
 [vars]
 # Non-secret config vars
