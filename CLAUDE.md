@@ -133,13 +133,18 @@ npx wrangler pages deploy dist
 
 ## Session History
 
-### Jan 4, 2025
-- Initial build with Astro + D1
-- Created full D1 schema (13 tables)
-- Built 6 API routes (workouts, nutrition, metrics, recipes, water, dashboard)
-- Created 6 pages (dashboard, workout, nutrition, recipes, metrics, schedule)
+### Jan 5, 2026
+- Discussed KV vs D1 for fitness app (chose D1 for relational queries)
+- Created new Astro project with Cloudflare adapter
+- Designed D1 schema with 14 tables (settings, workout_log, exercise_log, body_metrics, nutrition_log, meals, recipes, meal_plans, water_log, daily_checklist, supplements, goals, workout_templates, template_exercises)
+- Built 6 API routes: `/api/workouts`, `/api/nutrition`, `/api/metrics`, `/api/recipes`, `/api/water`, `/api/dashboard`
+- Created 6 pages: Dashboard, Workout, Nutrition, Recipes, Metrics, Schedule
 - Migrated CST workout templates from original clark-stark
-- Gumroad-style UI with Tailwind
+- Gumroad-style UI with Tailwind (matching x-content app)
+- Created D1 database: `clark-stark-workout` (ID: `0dca19c9-6f87-4d70-9dc7-53fe9d5d51bf`)
+- Applied schema via Cloudflare Dashboard D1 Console
+- Deployed to Cloudflare Pages via GitHub integration
+- **Next:** Add D1 binding in Pages settings, polish UI, add Cloudflare Access
 
 ## Migration from Google Sheets
 
