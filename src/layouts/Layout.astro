@@ -1,0 +1,68 @@
+---
+interface Props {
+  title: string;
+  activeNav?: string;
+}
+
+const { title, activeNav = '' } = Astro.props;
+
+const navItems = [
+  { href: '/', label: 'Dashboard', id: 'dashboard' },
+  { href: '/workout', label: 'Workout', id: 'workout' },
+  { href: '/nutrition', label: 'Nutrition', id: 'nutrition' },
+  { href: '/recipes', label: 'Recipes', id: 'recipes' },
+  { href: '/metrics', label: 'Metrics', id: 'metrics' },
+  { href: '/schedule', label: 'Schedule', id: 'schedule' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ClarkStark - Personal Fitness Tracker" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | ClarkStark</title>
+  </head>
+  <body class="min-h-screen">
+    <!-- Floating decorations -->
+    <div class="decoration top-20 right-10 w-32 h-32 bg-brand-peach rounded-full blur-3xl"></div>
+    <div class="decoration bottom-20 left-10 w-40 h-40 bg-brand-pink rounded-full blur-3xl"></div>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-8">
+        <a href="/" class="flex items-center gap-2">
+          <span class="text-2xl">💪</span>
+          <span class="text-xl font-bold">ClarkStark</span>
+        </a>
+
+        <nav class="flex items-center gap-1">
+          {navItems.map(item => (
+            <a
+              href={item.href}
+              class={`nav-link ${activeNav === item.id ? 'active' : ''}`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <!-- Main content -->
+      <main>
+        <slot />
+      </main>
+
+      <!-- Footer -->
+      <footer class="mt-12 py-6 text-center text-sm text-gray-400">
+        ClarkStark &copy; 2026 - Best Shape at 50
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

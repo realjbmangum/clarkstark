@@ -1,0 +1,14 @@
+name = "clarkstark"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clark-stark-workout"
+database_id = "08e5fea93c464a5a907e39415490fee2"
+
+[vars]
+# Non-secret config vars
+PROTEIN_TARGET = "150"
+WATER_TARGET_LITERS = "3"

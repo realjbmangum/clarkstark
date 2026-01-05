@@ -1,0 +1,244 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
+
+const today = new Date().toISOString().split('T')[0];
+---
+
+<Layout title="Body Metrics" activeNav="metrics">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold">Body Metrics</h1>
+      <p class="text-gray-500">Track your transformation</p>
+    </div>
+
+    <!-- Current Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="stat-card">
+        <div class="stat-value" id="current-weight">-</div>
+        <div class="stat-label">Weight (lbs)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="current-waist">-</div>
+        <div class="stat-label">Waist (in)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="current-bodyfat">-</div>
+        <div class="stat-label">Body Fat %</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="current-arms">-</div>
+        <div class="stat-label">Arms (in)</div>
+      </div>
+    </div>
+
+    <!-- Log New Metrics -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Log Measurements</h3>
+      <form id="metrics-form" class="space-y-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Date</label>
+            <input type="date" id="metric-date" value={today} class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Weight (lbs)</label>
+            <input type="number" step="0.1" id="metric-weight" placeholder="185" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Waist (in)</label>
+            <input type="number" step="0.25" id="metric-waist" placeholder="34" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Neck (in)</label>
+            <input type="number" step="0.25" id="metric-neck" placeholder="16" class="w-full" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Chest (in)</label>
+            <input type="number" step="0.25" id="metric-chest" placeholder="42" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Arms (in)</label>
+            <input type="number" step="0.25" id="metric-arms" placeholder="15" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Thighs (in)</label>
+            <input type="number" step="0.25" id="metric-thighs" placeholder="24" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Notes</label>
+            <input type="text" id="metric-notes" placeholder="Optional" class="w-full" />
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <button type="submit" class="btn btn-primary">Save Measurements</button>
+          <div id="bodyfat-result" class="flex items-center text-sm text-gray-500"></div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Progress Chart Placeholder -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Progress Over Time</h3>
+      <div id="history-table" class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Weight</th>
+              <th>Waist</th>
+              <th>Body Fat</th>
+              <th>Arms</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="5" class="text-center text-gray-400 py-4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Goals -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Transformation Goals</h3>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>Weight</span>
+            <span id="goal-weight-label">- / 175 lbs</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="goal-weight-progress" style="width: 0%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>Waist</span>
+            <span id="goal-waist-label">- / 32 in</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill bg-green-500" id="goal-waist-progress" style="width: 0%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>Arms</span>
+            <span id="goal-arms-label">- / 16 in</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill bg-blue-500" id="goal-arms-progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  async function loadMetrics() {
+    try {
+      const res = await fetch('/api/metrics?limit=30');
+      const data = await res.json();
+      const metrics = data.metrics || [];
+
+      if (metrics.length > 0) {
+        const latest = metrics[0];
+        document.getElementById('current-weight')!.textContent = latest.weight ? latest.weight + '' : '-';
+        document.getElementById('current-waist')!.textContent = latest.waist ? latest.waist + '"' : '-';
+        document.getElementById('current-bodyfat')!.textContent = latest.body_fat ? latest.body_fat + '%' : '-';
+        document.getElementById('current-arms')!.textContent = latest.arms ? latest.arms + '"' : '-';
+
+        // Update goals (assuming targets)
+        const weightTarget = 175;
+        const waistTarget = 32;
+        const armsTarget = 16;
+
+        if (latest.weight) {
+          document.getElementById('goal-weight-label')!.textContent = `${latest.weight} / ${weightTarget} lbs`;
+          // Progress is inverse for weight (going down)
+          const startWeight = 195;
+          const pct = ((startWeight - latest.weight) / (startWeight - weightTarget)) * 100;
+          document.getElementById('goal-weight-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        }
+
+        if (latest.waist) {
+          document.getElementById('goal-waist-label')!.textContent = `${latest.waist} / ${waistTarget} in`;
+          const startWaist = 36;
+          const pct = ((startWaist - latest.waist) / (startWaist - waistTarget)) * 100;
+          document.getElementById('goal-waist-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        }
+
+        if (latest.arms) {
+          document.getElementById('goal-arms-label')!.textContent = `${latest.arms} / ${armsTarget} in`;
+          const startArms = 14;
+          const pct = ((latest.arms - startArms) / (armsTarget - startArms)) * 100;
+          document.getElementById('goal-arms-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        }
+      }
+
+      // Populate history table
+      const tbody = document.getElementById('history-body')!;
+      if (metrics.length > 0) {
+        tbody.innerHTML = metrics.slice(0, 10).map((m: any) => `
+          <tr>
+            <td>${m.date}</td>
+            <td>${m.weight || '-'}</td>
+            <td>${m.waist || '-'}</td>
+            <td>${m.body_fat ? m.body_fat + '%' : '-'}</td>
+            <td>${m.arms || '-'}</td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-4">No measurements yet</td></tr>';
+      }
+
+    } catch (err) {
+      console.error('Failed to load metrics:', err);
+    }
+  }
+
+  // Form submission
+  document.getElementById('metrics-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const data = {
+      date: (document.getElementById('metric-date') as HTMLInputElement).value,
+      weight: parseFloat((document.getElementById('metric-weight') as HTMLInputElement).value) || null,
+      waist: parseFloat((document.getElementById('metric-waist') as HTMLInputElement).value) || null,
+      neck: parseFloat((document.getElementById('metric-neck') as HTMLInputElement).value) || null,
+      chest: parseFloat((document.getElementById('metric-chest') as HTMLInputElement).value) || null,
+      arms: parseFloat((document.getElementById('metric-arms') as HTMLInputElement).value) || null,
+      thighs: parseFloat((document.getElementById('metric-thighs') as HTMLInputElement).value) || null,
+      notes: (document.getElementById('metric-notes') as HTMLInputElement).value || null
+    };
+
+    try {
+      const res = await fetch('/api/metrics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        if (result.body_fat) {
+          document.getElementById('bodyfat-result')!.textContent = `Calculated body fat: ${result.body_fat}%`;
+        }
+        loadMetrics();
+
+        // Clear form except date
+        ['weight', 'waist', 'neck', 'chest', 'arms', 'thighs', 'notes'].forEach(field => {
+          (document.getElementById(`metric-${field}`) as HTMLInputElement).value = '';
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save metrics:', err);
+    }
+  });
+
+  loadMetrics();
+</script>

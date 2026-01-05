@@ -1,0 +1,291 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { WORKOUTS, getTodaysWorkout } from '../data/workouts';
+
+export const prerender = false;
+
+const url = Astro.url;
+const workoutId = url.searchParams.get('id');
+const workout = workoutId ? WORKOUTS[workoutId] : getTodaysWorkout();
+
+const today = new Date().toISOString().split('T')[0];
+
+const typeColors: Record<string, string> = {
+  strength: 'bg-red-100 text-red-700',
+  power: 'bg-yellow-100 text-yellow-700',
+  hypertrophy: 'bg-blue-100 text-blue-700',
+  speed: 'bg-green-100 text-green-700',
+  conditioning: 'bg-purple-100 text-purple-700',
+  rest: 'bg-gray-100 text-gray-500'
+};
+---
+
+<Layout title={workout?.name || 'Workout'} activeNav="workout">
+  {workout ? (
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-2xl font-bold">{workout.name}</h1>
+            <span class={`px-3 py-1 rounded-full text-sm font-medium ${typeColors[workout.type] || 'bg-gray-100'}`}>
+              {workout.type}
+            </span>
+          </div>
+          <p class="text-gray-500">{workout.focus}</p>
+          <p class="text-sm text-gray-400 mt-1">{workout.duration}</p>
+        </div>
+        <button id="start-timer" class="btn btn-primary">
+          Start Timer
+        </button>
+      </div>
+
+      {workout.circuitInstructions && (
+        <div class="bg-blue-50 text-blue-700 px-4 py-3 rounded-xl text-sm">
+          {workout.circuitInstructions}
+        </div>
+      )}
+
+      <!-- Warmup -->
+      <div class="card">
+        <h2 class="font-semibold mb-3">Warmup</h2>
+        <div class="space-y-2 text-sm">
+          <p><span class="text-gray-500">Cardio:</span> {workout.warmup.cardio}</p>
+          <div>
+            <span class="text-gray-500">Mobility:</span>
+            <ul class="ml-4 mt-1 space-y-1">
+              {workout.warmup.mobility.map((m) => (
+                <li class="flex items-center gap-2">
+                  <input type="checkbox" class="warmup-check rounded" />
+                  <span>{m}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Exercises -->
+      <div class="card">
+        <h2 class="font-semibold mb-4">Exercises</h2>
+        <div class="space-y-4">
+          {workout.exercises.map((ex, idx) => (
+            <div class="exercise-block border rounded-xl p-4" data-exercise-id={ex.id} data-sets={ex.sets}>
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h3 class="font-medium">{ex.name}</h3>
+                  <p class="text-sm text-gray-500">
+                    {ex.sets} x {ex.reps} {ex.tempo && `• ${ex.tempo}`}
+                  </p>
+                  {ex.notes && <p class="text-xs text-gray-400 mt-1">{ex.notes}</p>}
+                </div>
+              </div>
+
+              <!-- Set inputs -->
+              <div class="space-y-2">
+                {Array.from({ length: ex.sets }).map((_, setIdx) => (
+                  <div class="set-row" data-set={setIdx + 1}>
+                    <span class="text-sm text-gray-400 w-16">Set {setIdx + 1}</span>
+                    <input
+                      type="number"
+                      placeholder="Reps"
+                      class="w-20 text-center text-sm"
+                      data-field="reps"
+                    />
+                    <span class="text-gray-400">x</span>
+                    <input
+                      type="number"
+                      placeholder="lbs"
+                      class="w-20 text-center text-sm"
+                      data-field="weight"
+                    />
+                    <button class="complete-set ml-auto text-gray-400 hover:text-green-500">
+                      ✓
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Core -->
+      {workout.core.length > 0 && (
+        <div class="card">
+          <h2 class="font-semibold mb-4">Core Work</h2>
+          <div class="space-y-4">
+            {workout.core.map((ex) => (
+              <div class="exercise-block border rounded-xl p-4" data-exercise-id={ex.id} data-sets={ex.sets}>
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 class="font-medium">{ex.name}</h3>
+                    <p class="text-sm text-gray-500">
+                      {ex.sets} x {ex.reps} {ex.tempo && `• ${ex.tempo}`}
+                    </p>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  {Array.from({ length: ex.sets }).map((_, setIdx) => (
+                    <div class="set-row" data-set={setIdx + 1}>
+                      <span class="text-sm text-gray-400 w-16">Set {setIdx + 1}</span>
+                      <input type="number" placeholder="Reps" class="w-20 text-center text-sm" data-field="reps" />
+                      <button class="complete-set ml-auto text-gray-400 hover:text-green-500">✓</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Finisher -->
+      {workout.finisher && (
+        <div class="card bg-gradient-to-br from-brand-orange to-brand-peach text-white">
+          <h2 class="font-semibold mb-2">Finisher: {workout.finisher.name}</h2>
+          <p class="text-white/90">{workout.finisher.description}</p>
+          <button class="finisher-done mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm transition-colors">
+            Mark Complete
+          </button>
+        </div>
+      )}
+
+      <!-- Save Workout -->
+      <div class="flex gap-4">
+        <button id="save-workout" class="btn btn-primary flex-1">
+          Save Workout
+        </button>
+        <a href="/" class="btn btn-secondary">
+          Cancel
+        </a>
+      </div>
+
+      <!-- Timer Modal -->
+      <div id="timer-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 text-center">
+          <div id="timer-display" class="text-6xl font-bold mb-4">0:00</div>
+          <div class="flex gap-4">
+            <button id="timer-60" class="btn btn-secondary">60s</button>
+            <button id="timer-90" class="btn btn-secondary">90s</button>
+            <button id="timer-120" class="btn btn-secondary">120s</button>
+            <button id="timer-close" class="btn btn-ghost">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div class="text-center py-12">
+      <p class="text-gray-500">Workout not found</p>
+      <a href="/" class="btn btn-primary mt-4">Back to Dashboard</a>
+    </div>
+  )}
+</Layout>
+
+<script define:vars={{ workoutId: workout?.id, workoutName: workout?.name, today }}>
+  // Timer functionality
+  let timerInterval: number | undefined;
+  let timeLeft = 0;
+
+  const timerModal = document.getElementById('timer-modal');
+  const timerDisplay = document.getElementById('timer-display');
+
+  function showTimer(seconds: number) {
+    timeLeft = seconds;
+    timerModal?.classList.remove('hidden');
+    timerModal?.classList.add('flex');
+    updateTimerDisplay();
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        // Play sound or vibrate
+        if (navigator.vibrate) navigator.vibrate(200);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    if (timerDisplay) {
+      timerDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+  }
+
+  document.getElementById('start-timer')?.addEventListener('click', () => showTimer(90));
+  document.getElementById('timer-60')?.addEventListener('click', () => showTimer(60));
+  document.getElementById('timer-90')?.addEventListener('click', () => showTimer(90));
+  document.getElementById('timer-120')?.addEventListener('click', () => showTimer(120));
+  document.getElementById('timer-close')?.addEventListener('click', () => {
+    timerModal?.classList.add('hidden');
+    timerModal?.classList.remove('flex');
+    if (timerInterval) clearInterval(timerInterval);
+  });
+
+  // Complete set functionality
+  document.querySelectorAll('.complete-set').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const row = (e.target as HTMLElement).closest('.set-row');
+      row?.classList.toggle('set-complete');
+      row?.classList.toggle('bg-green-50');
+    });
+  });
+
+  // Finisher done
+  document.querySelector('.finisher-done')?.addEventListener('click', (e) => {
+    const btn = e.target as HTMLElement;
+    btn.textContent = '✓ Complete!';
+    btn.classList.add('bg-white', 'text-brand-orange');
+  });
+
+  // Save workout
+  document.getElementById('save-workout')?.addEventListener('click', async () => {
+    const exercises: any[] = [];
+
+    document.querySelectorAll('.exercise-block').forEach(block => {
+      const exerciseName = block.querySelector('h3')?.textContent || '';
+
+      block.querySelectorAll('.set-row').forEach(row => {
+        const setNum = parseInt((row as HTMLElement).dataset.set || '1');
+        const repsInput = row.querySelector('[data-field="reps"]') as HTMLInputElement;
+        const weightInput = row.querySelector('[data-field="weight"]') as HTMLInputElement;
+
+        if (repsInput?.value || weightInput?.value) {
+          exercises.push({
+            exercise_name: exerciseName,
+            set_number: setNum,
+            reps: parseInt(repsInput?.value) || null,
+            weight: parseFloat(weightInput?.value) || null
+          });
+        }
+      });
+    });
+
+    try {
+      const res = await fetch('/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today,
+          template_id: workoutId,
+          workout_name: workoutName,
+          exercises
+        })
+      });
+
+      if (res.ok) {
+        alert('Workout saved!');
+        window.location.href = '/';
+      } else {
+        alert('Failed to save workout');
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('Failed to save workout');
+    }
+  });
+</script>

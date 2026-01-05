@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Gumroad-inspired light theme */
+:root {
+  --brand-orange: #ff6154;
+  --brand-peach: #ffb088;
+  --brand-pink: #ffd1dc;
+  --bg-main: #fafafa;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --border-color: #e5e5e5;
+}
+
+body {
+  @apply bg-[var(--bg-main)] text-[var(--text-primary)] font-sans;
+  min-height: 100vh;
+}
+
+/* Card style */
+.card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
+}
+
+/* Pill buttons */
+.btn {
+  @apply px-4 py-2 rounded-full font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply bg-brand-orange text-white hover:bg-opacity-90 shadow-md hover:shadow-lg;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+}
+
+.btn-ghost {
+  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100;
+}
+
+/* Input styles */
+input, select, textarea {
+  @apply rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent;
+}
+
+/* Stat card */
+.stat-card {
+  @apply card text-center;
+}
+
+.stat-value {
+  @apply text-3xl font-bold text-brand-orange;
+}
+
+.stat-label {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+/* Navigation */
+.nav-link {
+  @apply px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+}
+
+.nav-link.active {
+  @apply bg-brand-orange text-white hover:bg-brand-orange hover:text-white;
+}
+
+/* Progress bar */
+.progress-bar {
+  @apply h-2 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full bg-brand-orange transition-all duration-500;
+}
+
+/* Table styles */
+table {
+  @apply w-full;
+}
+
+th {
+  @apply text-left text-sm font-medium text-gray-500 pb-3 border-b;
+}
+
+td {
+  @apply py-3 border-b border-gray-100;
+}
+
+/* Exercise set row */
+.set-row {
+  @apply flex items-center gap-4 py-2 px-3 rounded-lg hover:bg-gray-50;
+}
+
+.set-complete {
+  @apply bg-green-50;
+}
+
+/* Floating decoration (Gumroad style) */
+.decoration {
+  @apply absolute pointer-events-none opacity-50;
+}

@@ -1,0 +1,253 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
+
+const today = new Date().toISOString().split('T')[0];
+---
+
+<Layout title="Nutrition" activeNav="nutrition">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Nutrition</h1>
+        <p class="text-gray-500">Track meals and macros</p>
+      </div>
+      <input type="date" id="date-picker" value={today} class="rounded-xl" />
+    </div>
+
+    <!-- Daily Summary -->
+    <div class="grid grid-cols-4 gap-4">
+      <div class="stat-card">
+        <div class="stat-value" id="total-calories">0</div>
+        <div class="stat-label">Calories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value text-green-500" id="total-protein">0g</div>
+        <div class="stat-label">Protein</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value text-blue-500" id="total-carbs">0g</div>
+        <div class="stat-label">Carbs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value text-yellow-500" id="total-fat">0g</div>
+        <div class="stat-label">Fat</div>
+      </div>
+    </div>
+
+    <!-- Protein Progress -->
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold">Protein Target</h3>
+        <span class="text-sm text-gray-500" id="protein-target-label">0 / 150g</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="protein-progress" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Quick Add Meals -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Quick Add</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="40" data-calories="400">
+          <div class="font-medium">Chicken Breast</div>
+          <div class="text-xs text-gray-500">40g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="25" data-calories="150">
+          <div class="font-medium">Protein Shake</div>
+          <div class="text-xs text-gray-500">25g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="20" data-calories="280">
+          <div class="font-medium">Greek Yogurt</div>
+          <div class="text-xs text-gray-500">20g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="6" data-calories="70">
+          <div class="font-medium">Eggs (1)</div>
+          <div class="text-xs text-gray-500">6g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="30" data-calories="350">
+          <div class="font-medium">Ground Beef</div>
+          <div class="text-xs text-gray-500">30g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="35" data-calories="300">
+          <div class="font-medium">Salmon</div>
+          <div class="text-xs text-gray-500">35g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="15" data-calories="200">
+          <div class="font-medium">Cottage Cheese</div>
+          <div class="text-xs text-gray-500">15g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="8" data-calories="120">
+          <div class="font-medium">Milk (glass)</div>
+          <div class="text-xs text-gray-500">8g protein</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Log Custom Meal -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Log Meal</h3>
+      <form id="meal-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Meal Type</label>
+            <select id="meal-type" class="w-full">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Description</label>
+            <input type="text" id="meal-desc" placeholder="What did you eat?" class="w-full" />
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Calories</label>
+            <input type="number" id="meal-calories" placeholder="0" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Protein (g)</label>
+            <input type="number" id="meal-protein" placeholder="0" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Carbs (g)</label>
+            <input type="number" id="meal-carbs" placeholder="0" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Fat (g)</label>
+            <input type="number" id="meal-fat" placeholder="0" class="w-full" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Log Meal</button>
+      </form>
+    </div>
+
+    <!-- Today's Meals -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Today's Meals</h3>
+      <div id="meals-list" class="space-y-3">
+        <p class="text-gray-400 text-sm">No meals logged yet</p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const datePicker = document.getElementById('date-picker') as HTMLInputElement;
+  let currentDate = datePicker?.value || new Date().toISOString().split('T')[0];
+
+  async function loadNutrition(date: string) {
+    try {
+      const res = await fetch(`/api/nutrition?date=${date}`);
+      const data = await res.json();
+
+      const nutrition = data.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+      const meals = data.meals || [];
+
+      document.getElementById('total-calories')!.textContent = nutrition.calories || '0';
+      document.getElementById('total-protein')!.textContent = (nutrition.protein || 0) + 'g';
+      document.getElementById('total-carbs')!.textContent = (nutrition.carbs || 0) + 'g';
+      document.getElementById('total-fat')!.textContent = (nutrition.fat || 0) + 'g';
+
+      // Protein progress
+      const proteinTarget = 150;
+      const proteinPct = Math.min(100, ((nutrition.protein || 0) / proteinTarget) * 100);
+      document.getElementById('protein-progress')!.style.width = proteinPct + '%';
+      document.getElementById('protein-target-label')!.textContent = `${nutrition.protein || 0} / ${proteinTarget}g`;
+
+      // Meals list
+      const mealsList = document.getElementById('meals-list')!;
+      if (meals.length > 0) {
+        mealsList.innerHTML = meals.map((m: any) => `
+          <div class="flex items-center justify-between py-2 border-b border-gray-100">
+            <div>
+              <span class="font-medium">${m.description || m.meal_type}</span>
+              <span class="text-xs text-gray-400 ml-2">${m.meal_type}</span>
+            </div>
+            <div class="text-sm text-gray-500">
+              ${m.protein}g protein • ${m.calories} cal
+            </div>
+          </div>
+        `).join('');
+      } else {
+        mealsList.innerHTML = '<p class="text-gray-400 text-sm">No meals logged yet</p>';
+      }
+    } catch (err) {
+      console.error('Failed to load nutrition:', err);
+    }
+  }
+
+  async function logMeal(mealData: any) {
+    try {
+      const res = await fetch('/api/nutrition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'meal',
+          date: currentDate,
+          ...mealData
+        })
+      });
+
+      if (res.ok) {
+        loadNutrition(currentDate);
+      }
+    } catch (err) {
+      console.error('Failed to log meal:', err);
+    }
+  }
+
+  // Date picker change
+  datePicker?.addEventListener('change', (e) => {
+    currentDate = (e.target as HTMLInputElement).value;
+    loadNutrition(currentDate);
+  });
+
+  // Quick meal buttons
+  document.querySelectorAll('.quick-meal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLElement;
+      const protein = parseInt(target.dataset.protein || '0');
+      const calories = parseInt(target.dataset.calories || '0');
+      const description = target.querySelector('.font-medium')?.textContent || '';
+
+      logMeal({
+        meal_type: 'snack',
+        description,
+        calories,
+        protein,
+        carbs: 0,
+        fat: 0
+      });
+    });
+  });
+
+  // Meal form
+  document.getElementById('meal-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    logMeal({
+      meal_type: (document.getElementById('meal-type') as HTMLSelectElement).value,
+      description: (document.getElementById('meal-desc') as HTMLInputElement).value,
+      calories: parseInt((document.getElementById('meal-calories') as HTMLInputElement).value) || 0,
+      protein: parseInt((document.getElementById('meal-protein') as HTMLInputElement).value) || 0,
+      carbs: parseInt((document.getElementById('meal-carbs') as HTMLInputElement).value) || 0,
+      fat: parseInt((document.getElementById('meal-fat') as HTMLInputElement).value) || 0
+    });
+
+    // Clear form
+    (document.getElementById('meal-desc') as HTMLInputElement).value = '';
+    (document.getElementById('meal-calories') as HTMLInputElement).value = '';
+    (document.getElementById('meal-protein') as HTMLInputElement).value = '';
+    (document.getElementById('meal-carbs') as HTMLInputElement).value = '';
+    (document.getElementById('meal-fat') as HTMLInputElement).value = '';
+  });
+
+  // Load on page load
+  loadNutrition(currentDate);
+</script>
