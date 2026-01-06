@@ -255,8 +255,17 @@ const typeColors: Record<string, string> = {
   });
 
   // Save workout
-  document.getElementById('save-workout')?.addEventListener('click', async () => {
-    const btn = document.getElementById('save-workout') as HTMLButtonElement;
+  const saveBtn = document.getElementById('save-workout');
+  console.log('Save button found:', saveBtn);
+  console.log('Variables:', { workoutId, workoutName, today });
+
+  if (!saveBtn) {
+    console.error('Save button not found!');
+  }
+
+  saveBtn?.addEventListener('click', async () => {
+    console.log('Save clicked!');
+    const btn = saveBtn as HTMLButtonElement;
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
@@ -285,21 +294,26 @@ const typeColors: Record<string, string> = {
     const completedSets = document.querySelectorAll('.set-complete').length;
     const estimatedMinutes = Math.max(20, completedSets * 2);
 
+    const payload = {
+      date: today,
+      template_id: workoutId,
+      workout_name: workoutName,
+      duration_minutes: estimatedMinutes,
+      notes: finisherCompleted ? 'Finisher completed' : null,
+      exercises
+    };
+    console.log('Sending payload:', payload);
+
     try {
       const res = await fetch('/api/workouts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: today,
-          template_id: workoutId,
-          workout_name: workoutName,
-          duration_minutes: estimatedMinutes,
-          notes: finisherCompleted ? 'Finisher completed' : null,
-          exercises
-        })
+        body: JSON.stringify(payload)
       });
 
+      console.log('Response status:', res.status);
       const result = await res.json();
+      console.log('Response data:', result);
 
       if (res.ok && result.success) {
         alert('Workout saved!');
