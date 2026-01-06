@@ -187,13 +187,13 @@ const typeColors: Record<string, string> = {
 
 <script define:vars={{ workoutId: workout?.id, workoutName: workout?.name, today }}>
   // Timer functionality
-  let timerInterval: number | undefined;
+  let timerInterval;
   let timeLeft = 0;
 
   const timerModal = document.getElementById('timer-modal');
   const timerDisplay = document.getElementById('timer-display');
 
-  function showTimer(seconds: number) {
+  function showTimer(seconds) {
     timeLeft = seconds;
     timerModal?.classList.remove('hidden');
     timerModal?.classList.add('flex');
@@ -232,7 +232,7 @@ const typeColors: Record<string, string> = {
   // Complete set functionality
   document.querySelectorAll('.complete-set').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const row = (e.target as HTMLElement).closest('.set-row');
+      const row = e.target.closest('.set-row');
       row?.classList.toggle('set-complete');
       row?.classList.toggle('bg-green-50');
     });
@@ -243,7 +243,7 @@ const typeColors: Record<string, string> = {
 
   // Finisher done - update tracking
   document.querySelector('.finisher-done')?.addEventListener('click', (e) => {
-    const btn = e.target as HTMLElement;
+    const btn = e.target;
     finisherCompleted = !finisherCompleted;
     if (finisherCompleted) {
       btn.textContent = '✓ Complete!';
@@ -265,19 +265,19 @@ const typeColors: Record<string, string> = {
 
   saveBtn?.addEventListener('click', async () => {
     console.log('Save clicked!');
-    const btn = saveBtn as HTMLButtonElement;
+    const btn = saveBtn;
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
-    const exercises: any[] = [];
+    const exercises = [];
 
     document.querySelectorAll('.exercise-block').forEach(block => {
       const exerciseName = block.querySelector('h3')?.textContent || '';
 
       block.querySelectorAll('.set-row').forEach(row => {
-        const setNum = parseInt((row as HTMLElement).dataset.set || '1');
-        const repsInput = row.querySelector('[data-field="reps"]') as HTMLInputElement;
-        const weightInput = row.querySelector('[data-field="weight"]') as HTMLInputElement;
+        const setNum = parseInt(row.dataset?.set || '1');
+        const repsInput = row.querySelector('[data-field="reps"]');
+        const weightInput = row.querySelector('[data-field="weight"]');
 
         if (repsInput?.value || weightInput?.value) {
           exercises.push({
