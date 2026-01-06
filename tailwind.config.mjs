@@ -5,8 +5,8 @@ export default {
     extend: {
       colors: {
         brand: {
-          orange: '#ff6154',
-          peach: '#ffb088',
+          orange: '#cc5500',
+          peach: '#e87d3e',
           pink: '#ffd1dc',
         }
       }

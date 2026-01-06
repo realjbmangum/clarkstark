@@ -3,7 +3,10 @@ import Layout from '../layouts/Layout.astro';
 
 export const prerender = false;
 
-const today = new Date().toISOString().split('T')[0];
+// Use Eastern timezone for date
+const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+const nowEastern = new Date(easternDate);
+const today = nowEastern.toISOString().split('T')[0];
 ---
 
 <Layout title="Nutrition" activeNav="nutrition">
@@ -47,41 +50,76 @@ const today = new Date().toISOString().split('T')[0];
       </div>
     </div>
 
+    <!-- Quick Add Water -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Water Intake</h3>
+      <div class="flex items-center gap-4 mb-3">
+        <div class="flex-1">
+          <div class="progress-bar">
+            <div class="progress-fill" id="water-progress" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-sm text-gray-500" id="water-label">0 / 3L</span>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button class="water-btn btn btn-ghost text-sm" data-amount="0.25">+250ml</button>
+        <button class="water-btn btn btn-ghost text-sm" data-amount="0.5">+500ml</button>
+        <button class="water-btn btn btn-ghost text-sm" data-amount="0.75">+750ml</button>
+        <button class="water-btn btn btn-ghost text-sm" data-amount="1">+1L</button>
+      </div>
+    </div>
+
     <!-- Quick Add Meals -->
     <div class="card">
       <h3 class="font-semibold mb-4">Quick Add</h3>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="40" data-calories="400">
-          <div class="font-medium">Chicken Breast</div>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="50" data-calories="700" data-fat="50">
+          <div class="font-medium">Ribeye (8oz)</div>
+          <div class="text-xs text-gray-500">50g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="30" data-calories="350" data-fat="20">
+          <div class="font-medium">Ground Beef (6oz)</div>
+          <div class="text-xs text-gray-500">30g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="12" data-calories="140" data-fat="10">
+          <div class="font-medium">Eggs (2)</div>
+          <div class="text-xs text-gray-500">12g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="10" data-calories="180" data-fat="14">
+          <div class="font-medium">Bacon (4 strips)</div>
+          <div class="text-xs text-gray-500">10g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="35" data-calories="300" data-fat="15">
+          <div class="font-medium">Salmon (6oz)</div>
+          <div class="text-xs text-gray-500">35g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="25" data-calories="300" data-fat="20">
+          <div class="font-medium">Burger Patty</div>
+          <div class="text-xs text-gray-500">25g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="40" data-calories="400" data-fat="20">
+          <div class="font-medium">Chicken Thighs</div>
           <div class="text-xs text-gray-500">40g protein</div>
         </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="25" data-calories="150">
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="35" data-calories="350" data-fat="18">
+          <div class="font-medium">Pork Chop</div>
+          <div class="text-xs text-gray-500">35g protein</div>
+        </button>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="25" data-calories="150" data-fat="3">
           <div class="font-medium">Protein Shake</div>
           <div class="text-xs text-gray-500">25g protein</div>
         </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="20" data-calories="280">
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="20" data-calories="280" data-fat="10">
           <div class="font-medium">Greek Yogurt</div>
           <div class="text-xs text-gray-500">20g protein</div>
         </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="6" data-calories="70">
-          <div class="font-medium">Eggs (1)</div>
-          <div class="text-xs text-gray-500">6g protein</div>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="5" data-calories="160" data-fat="13">
+          <div class="font-medium">Cashews (1oz)</div>
+          <div class="text-xs text-gray-500">5g protein</div>
         </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="30" data-calories="350">
-          <div class="font-medium">Ground Beef</div>
-          <div class="text-xs text-gray-500">30g protein</div>
-        </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="35" data-calories="300">
-          <div class="font-medium">Salmon</div>
-          <div class="text-xs text-gray-500">35g protein</div>
-        </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="15" data-calories="200">
-          <div class="font-medium">Cottage Cheese</div>
-          <div class="text-xs text-gray-500">15g protein</div>
-        </button>
-        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="8" data-calories="120">
-          <div class="font-medium">Milk (glass)</div>
-          <div class="text-xs text-gray-500">8g protein</div>
+        <button class="quick-meal btn btn-secondary text-left p-4" data-protein="7" data-calories="170" data-fat="14">
+          <div class="font-medium">Peanuts (1oz)</div>
+          <div class="text-xs text-gray-500">7g protein</div>
         </button>
       </div>
     </div>
@@ -177,8 +215,40 @@ const today = new Date().toISOString().split('T')[0];
       } else {
         mealsList.innerHTML = '<p class="text-gray-400 text-sm">No meals logged yet</p>';
       }
+
+      // Load water for the selected date
+      loadWater(date);
     } catch (err) {
       console.error('Failed to load nutrition:', err);
+    }
+  }
+
+  async function loadWater(date: string) {
+    try {
+      const res = await fetch(`/api/water?date=${date}`);
+      const data = await res.json();
+      const waterTotal = data.total || 0;
+      const waterTarget = 3;
+      const waterPct = Math.min(100, (waterTotal / waterTarget) * 100);
+      document.getElementById('water-progress')!.style.width = waterPct + '%';
+      document.getElementById('water-label')!.textContent = `${waterTotal.toFixed(1)} / ${waterTarget}L`;
+    } catch (err) {
+      console.error('Failed to load water:', err);
+    }
+  }
+
+  async function logWater(amount: number) {
+    try {
+      const res = await fetch('/api/water', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount_liters: amount, date: currentDate })
+      });
+      if (res.ok) {
+        loadWater(currentDate);
+      }
+    } catch (err) {
+      console.error('Failed to log water:', err);
     }
   }
 
@@ -208,12 +278,21 @@ const today = new Date().toISOString().split('T')[0];
     loadNutrition(currentDate);
   });
 
+  // Water buttons
+  document.querySelectorAll('.water-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const amount = parseFloat((e.currentTarget as HTMLElement).dataset.amount || '0.5');
+      logWater(amount);
+    });
+  });
+
   // Quick meal buttons
   document.querySelectorAll('.quick-meal').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLElement;
       const protein = parseInt(target.dataset.protein || '0');
       const calories = parseInt(target.dataset.calories || '0');
+      const fat = parseInt(target.dataset.fat || '0');
       const description = target.querySelector('.font-medium')?.textContent || '';
 
       logMeal({
@@ -222,7 +301,7 @@ const today = new Date().toISOString().split('T')[0];
         calories,
         protein,
         carbs: 0,
-        fat: 0
+        fat
       });
     });
   });

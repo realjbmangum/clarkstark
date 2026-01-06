@@ -3,13 +3,17 @@ import Layout from '../layouts/Layout.astro';
 
 export const prerender = false;
 
-const today = new Date().toLocaleDateString('en-US', {
+// Use Eastern timezone for all date calculations
+const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+const nowEastern = new Date(easternDate);
+
+const today = nowEastern.toLocaleDateString('en-US', {
   weekday: 'long',
   month: 'long',
   day: 'numeric'
 });
 
-const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+const dayOfWeek = nowEastern.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
 const schedule: Record<string, { id: string; name: string }> = {
   monday: { id: 'upper_strength', name: 'Upper Strength - Push' },

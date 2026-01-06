@@ -212,7 +212,10 @@ export function getWorkout(id: string): Workout | undefined {
 }
 
 export function getTodaysWorkout(): Workout {
-  const day = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  // Use Eastern timezone for proper day calculation
+  const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+  const nowEastern = new Date(easternDate);
+  const day = nowEastern.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   const workoutId = SCHEDULE[day] || 'rest_day';
   return WORKOUTS[workoutId];
 }

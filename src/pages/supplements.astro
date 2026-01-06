@@ -1,0 +1,324 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
+
+// Use Eastern timezone for date
+const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+const nowEastern = new Date(easternDate);
+const today = nowEastern.toISOString().split('T')[0];
+---
+
+<Layout title="Supplements" activeNav="supplements">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Supplements</h1>
+        <p class="text-gray-500">Track your daily supplement stack</p>
+      </div>
+      <button id="add-supplement-btn" class="btn btn-primary">+ Add Supplement</button>
+    </div>
+
+    <!-- Today's Checklist -->
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Today's Stack</h3>
+        <input type="date" id="date-picker" value={today} class="rounded-xl text-sm" />
+      </div>
+      <div id="today-checklist" class="space-y-3">
+        <p class="text-gray-400 text-sm">Loading...</p>
+      </div>
+    </div>
+
+    <!-- All Supplements -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Your Supplements</h3>
+      <div id="supplements-list" class="space-y-3">
+        <p class="text-gray-400 text-sm">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="supplement-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4" id="modal-title">Add Supplement</h2>
+        <form id="supplement-form" class="space-y-4">
+          <input type="hidden" id="supplement-id" />
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Supplement Name</label>
+            <input type="text" id="supplement-name" required class="w-full" placeholder="Creatine Monohydrate" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Dosage</label>
+            <input type="text" id="supplement-dosage" class="w-full" placeholder="5g" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Timing</label>
+            <select id="supplement-timing" class="w-full">
+              <option value="morning">Morning</option>
+              <option value="with_meal">With Meal</option>
+              <option value="pre_workout">Pre-Workout</option>
+              <option value="post_workout">Post-Workout</option>
+              <option value="evening">Evening</option>
+              <option value="anytime">Anytime</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Notes</label>
+            <input type="text" id="supplement-notes" class="w-full" placeholder="Optional notes" />
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="supplement-active" checked class="rounded" />
+            <label for="supplement-active" class="text-sm">Currently taking</label>
+          </div>
+          <div class="flex gap-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="cancel-modal" class="btn btn-ghost">Cancel</button>
+            <button type="button" id="delete-supplement" class="btn btn-ghost text-red-500 ml-auto hidden">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let currentDate = (document.getElementById('date-picker') as HTMLInputElement)?.value;
+  let supplements: any[] = [];
+
+  const timingLabels: Record<string, string> = {
+    morning: '🌅 Morning',
+    with_meal: '🍽️ With Meal',
+    pre_workout: '💪 Pre-Workout',
+    post_workout: '🏋️ Post-Workout',
+    evening: '🌙 Evening',
+    anytime: '⏰ Anytime'
+  };
+
+  async function loadSupplements() {
+    try {
+      const res = await fetch('/api/supplements');
+      const data = await res.json();
+      supplements = data.supplements || [];
+      renderSupplementsList();
+      loadTodaysChecklist();
+    } catch (err) {
+      console.error('Failed to load supplements:', err);
+    }
+  }
+
+  function renderSupplementsList() {
+    const list = document.getElementById('supplements-list')!;
+    const activeSupps = supplements.filter(s => s.active);
+    const inactiveSupps = supplements.filter(s => !s.active);
+
+    if (supplements.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-6">
+          <p class="text-gray-400 mb-4">No supplements added yet</p>
+          <button onclick="document.getElementById('add-supplement-btn')?.click()" class="btn btn-primary">Add Your First Supplement</button>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+
+    if (activeSupps.length > 0) {
+      html += activeSupps.map(s => `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100" data-id="${s.id}">
+          <div>
+            <div class="font-medium">${s.name}</div>
+            <div class="text-sm text-gray-500">${s.dosage || ''} ${s.dosage && s.timing ? '•' : ''} ${timingLabels[s.timing] || s.timing}</div>
+            ${s.notes ? `<div class="text-xs text-gray-400 mt-1">${s.notes}</div>` : ''}
+          </div>
+          <span class="text-green-500">●</span>
+        </div>
+      `).join('');
+    }
+
+    if (inactiveSupps.length > 0) {
+      html += '<div class="text-sm text-gray-400 mt-4 mb-2">Inactive</div>';
+      html += inactiveSupps.map(s => `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 opacity-50" data-id="${s.id}">
+          <div>
+            <div class="font-medium">${s.name}</div>
+            <div class="text-sm text-gray-500">${s.dosage || ''}</div>
+          </div>
+          <span class="text-gray-300">●</span>
+        </div>
+      `).join('');
+    }
+
+    list.innerHTML = html;
+
+    // Add click handlers
+    list.querySelectorAll('[data-id]').forEach(el => {
+      el.addEventListener('click', () => editSupplement((el as HTMLElement).dataset.id!));
+    });
+  }
+
+  async function loadTodaysChecklist() {
+    try {
+      const res = await fetch(`/api/supplements?date=${currentDate}`);
+      const data = await res.json();
+      const taken = data.taken || [];
+
+      const checklist = document.getElementById('today-checklist')!;
+      const activeSupps = supplements.filter(s => s.active);
+
+      if (activeSupps.length === 0) {
+        checklist.innerHTML = '<p class="text-gray-400 text-sm">Add supplements to track them daily</p>';
+        return;
+      }
+
+      // Group by timing
+      const byTiming: Record<string, any[]> = {};
+      activeSupps.forEach(s => {
+        const t = s.timing || 'anytime';
+        if (!byTiming[t]) byTiming[t] = [];
+        byTiming[t].push(s);
+      });
+
+      const timingOrder = ['morning', 'with_meal', 'pre_workout', 'post_workout', 'evening', 'anytime'];
+
+      checklist.innerHTML = timingOrder
+        .filter(t => byTiming[t])
+        .map(t => `
+          <div class="mb-4">
+            <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">${timingLabels[t]}</div>
+            ${byTiming[t].map(s => `
+              <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                <input type="checkbox" class="supp-check rounded" data-id="${s.id}" ${taken.includes(s.id) ? 'checked' : ''} />
+                <span class="${taken.includes(s.id) ? 'line-through text-gray-400' : ''}">${s.name}</span>
+                <span class="text-sm text-gray-400 ml-auto">${s.dosage || ''}</span>
+              </label>
+            `).join('')}
+          </div>
+        `).join('');
+
+      // Add check handlers
+      checklist.querySelectorAll('.supp-check').forEach(checkbox => {
+        checkbox.addEventListener('change', async (e) => {
+          const id = (e.target as HTMLInputElement).dataset.id;
+          const checked = (e.target as HTMLInputElement).checked;
+          await toggleSupplement(id!, checked);
+        });
+      });
+    } catch (err) {
+      console.error('Failed to load checklist:', err);
+    }
+  }
+
+  async function toggleSupplement(supplementId: string, taken: boolean) {
+    try {
+      await fetch('/api/supplements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'log',
+          date: currentDate,
+          supplement_id: parseInt(supplementId),
+          taken
+        })
+      });
+      loadTodaysChecklist();
+    } catch (err) {
+      console.error('Failed to toggle supplement:', err);
+    }
+  }
+
+  function showModal() {
+    document.getElementById('supplement-modal')?.classList.remove('hidden');
+    document.getElementById('supplement-modal')?.classList.add('flex');
+  }
+
+  function hideModal() {
+    document.getElementById('supplement-modal')?.classList.add('hidden');
+    document.getElementById('supplement-modal')?.classList.remove('flex');
+    (document.getElementById('supplement-form') as HTMLFormElement).reset();
+    (document.getElementById('supplement-id') as HTMLInputElement).value = '';
+    (document.getElementById('supplement-active') as HTMLInputElement).checked = true;
+    document.getElementById('modal-title')!.textContent = 'Add Supplement';
+    document.getElementById('delete-supplement')?.classList.add('hidden');
+  }
+
+  function editSupplement(id: string) {
+    const supp = supplements.find(s => s.id === parseInt(id));
+    if (!supp) return;
+
+    document.getElementById('modal-title')!.textContent = 'Edit Supplement';
+    (document.getElementById('supplement-id') as HTMLInputElement).value = supp.id;
+    (document.getElementById('supplement-name') as HTMLInputElement).value = supp.name;
+    (document.getElementById('supplement-dosage') as HTMLInputElement).value = supp.dosage || '';
+    (document.getElementById('supplement-timing') as HTMLSelectElement).value = supp.timing || 'anytime';
+    (document.getElementById('supplement-notes') as HTMLInputElement).value = supp.notes || '';
+    (document.getElementById('supplement-active') as HTMLInputElement).checked = supp.active === 1;
+    document.getElementById('delete-supplement')?.classList.remove('hidden');
+    showModal();
+  }
+
+  // Event listeners
+  document.getElementById('add-supplement-btn')?.addEventListener('click', showModal);
+  document.getElementById('cancel-modal')?.addEventListener('click', hideModal);
+  document.getElementById('supplement-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('supplement-modal')) hideModal();
+  });
+
+  document.getElementById('date-picker')?.addEventListener('change', (e) => {
+    currentDate = (e.target as HTMLInputElement).value;
+    loadTodaysChecklist();
+  });
+
+  document.getElementById('supplement-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = (document.getElementById('supplement-id') as HTMLInputElement).value;
+
+    const data = {
+      action: id ? 'update' : 'create',
+      id: id ? parseInt(id) : undefined,
+      name: (document.getElementById('supplement-name') as HTMLInputElement).value,
+      dosage: (document.getElementById('supplement-dosage') as HTMLInputElement).value || null,
+      timing: (document.getElementById('supplement-timing') as HTMLSelectElement).value,
+      notes: (document.getElementById('supplement-notes') as HTMLInputElement).value || null,
+      active: (document.getElementById('supplement-active') as HTMLInputElement).checked
+    };
+
+    try {
+      const res = await fetch('/api/supplements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        hideModal();
+        loadSupplements();
+      }
+    } catch (err) {
+      console.error('Failed to save supplement:', err);
+    }
+  });
+
+  document.getElementById('delete-supplement')?.addEventListener('click', async () => {
+    const id = (document.getElementById('supplement-id') as HTMLInputElement).value;
+    if (!id || !confirm('Delete this supplement?')) return;
+
+    try {
+      const res = await fetch('/api/supplements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: parseInt(id) })
+      });
+
+      if (res.ok) {
+        hideModal();
+        loadSupplements();
+      }
+    } catch (err) {
+      console.error('Failed to delete supplement:', err);
+    }
+  });
+
+  loadSupplements();
+</script>

@@ -8,7 +8,10 @@ const url = Astro.url;
 const workoutId = url.searchParams.get('id');
 const workout = workoutId ? WORKOUTS[workoutId] : getTodaysWorkout();
 
-const today = new Date().toISOString().split('T')[0];
+// Use Eastern timezone for date
+const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+const nowEastern = new Date(easternDate);
+const today = nowEastern.toISOString().split('T')[0];
 
 const typeColors: Record<string, string> = {
   strength: 'bg-red-100 text-red-700',
@@ -235,15 +238,28 @@ const typeColors: Record<string, string> = {
     });
   });
 
-  // Finisher done
+  // Track finisher completion
+  let finisherCompleted = false;
+
+  // Finisher done - update tracking
   document.querySelector('.finisher-done')?.addEventListener('click', (e) => {
     const btn = e.target as HTMLElement;
-    btn.textContent = '✓ Complete!';
-    btn.classList.add('bg-white', 'text-brand-orange');
+    finisherCompleted = !finisherCompleted;
+    if (finisherCompleted) {
+      btn.textContent = '✓ Complete!';
+      btn.classList.add('bg-white', 'text-brand-orange');
+    } else {
+      btn.textContent = 'Mark Complete';
+      btn.classList.remove('bg-white', 'text-brand-orange');
+    }
   });
 
   // Save workout
   document.getElementById('save-workout')?.addEventListener('click', async () => {
+    const btn = document.getElementById('save-workout') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
     const exercises: any[] = [];
 
     document.querySelectorAll('.exercise-block').forEach(block => {
@@ -265,6 +281,10 @@ const typeColors: Record<string, string> = {
       });
     });
 
+    // Count completed sets for duration estimate
+    const completedSets = document.querySelectorAll('.set-complete').length;
+    const estimatedMinutes = Math.max(20, completedSets * 2);
+
     try {
       const res = await fetch('/api/workouts', {
         method: 'POST',
@@ -273,19 +293,28 @@ const typeColors: Record<string, string> = {
           date: today,
           template_id: workoutId,
           workout_name: workoutName,
+          duration_minutes: estimatedMinutes,
+          notes: finisherCompleted ? 'Finisher completed' : null,
           exercises
         })
       });
+
+      const result = await res.json();
 
       if (res.ok) {
         alert('Workout saved!');
         window.location.href = '/';
       } else {
-        alert('Failed to save workout');
+        console.error('API Error:', result);
+        alert('Failed to save: ' + (result.error || 'Unknown error'));
+        btn.disabled = false;
+        btn.textContent = 'Save Workout';
       }
     } catch (err) {
       console.error('Save error:', err);
-      alert('Failed to save workout');
+      alert('Failed to save workout. Check console for details.');
+      btn.disabled = false;
+      btn.textContent = 'Save Workout';
     }
   });
 </script>
