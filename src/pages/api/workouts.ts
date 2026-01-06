@@ -83,21 +83,35 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const data = await request.json();
     const { date, template_id, workout_name, duration_minutes, notes, energy_level, exercises } = data;
 
-    // Insert workout log
+    // Insert workout log - convert undefined to null for D1
     const workoutResult = await db.prepare(`
       INSERT INTO workout_log (date, template_id, workout_name, duration_minutes, notes, energy_level)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(date, template_id, workout_name, duration_minutes, notes, energy_level).run();
+    `).bind(
+      date || null,
+      template_id || null,
+      workout_name || null,
+      duration_minutes || null,
+      notes || null,
+      energy_level || null
+    ).run();
 
     const workoutId = workoutResult.meta.last_row_id;
 
-    // Insert exercise logs
+    // Insert exercise logs - convert undefined to null for D1
     if (exercises && exercises.length > 0) {
       for (const exercise of exercises) {
         await db.prepare(`
           INSERT INTO exercise_log (workout_log_id, exercise_name, set_number, reps, weight, notes)
           VALUES (?, ?, ?, ?, ?, ?)
-        `).bind(workoutId, exercise.exercise_name, exercise.set_number, exercise.reps, exercise.weight, exercise.notes).run();
+        `).bind(
+          workoutId,
+          exercise.exercise_name || null,
+          exercise.set_number || null,
+          exercise.reps || null,
+          exercise.weight || null,
+          exercise.notes || null
+        ).run();
       }
     }
 
