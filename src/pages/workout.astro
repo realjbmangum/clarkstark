@@ -307,10 +307,11 @@ const typeColors: Record<string, string> = {
       } else {
         console.error('API Error:', result);
         const errorMsg = result.error || 'Unknown error';
+        const details = result.details || '';
         if (errorMsg.includes('Database not configured')) {
           alert('Database not connected. Check D1 binding in Cloudflare Pages settings.');
         } else {
-          alert('Failed to save: ' + errorMsg);
+          alert('Failed to save: ' + errorMsg + (details ? '\n\nDetails: ' + details : ''));
         }
         btn.disabled = false;
         btn.textContent = 'Save Workout';

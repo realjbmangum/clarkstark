@@ -107,7 +107,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   } catch (error) {
     console.error('Error saving workout:', error);
-    return new Response(JSON.stringify({ error: 'Failed to save workout' }), {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({
+      error: 'Failed to save workout',
+      details: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
