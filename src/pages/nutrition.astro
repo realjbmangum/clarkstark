@@ -124,6 +124,18 @@ const today = nowEastern.toISOString().split('T')[0];
       </div>
     </div>
 
+    <!-- Food Search (USDA Database) -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Search Food Database</h3>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="food-search" placeholder="Search foods (e.g., ribeye, chicken breast)..." class="flex-1" />
+        <button id="search-btn" class="btn btn-primary">Search</button>
+      </div>
+      <div id="search-results" class="space-y-2 hidden">
+        <!-- Results will be populated here -->
+      </div>
+    </div>
+
     <!-- Log Custom Meal -->
     <div class="card">
       <h3 class="font-semibold mb-4">Log Meal</h3>
@@ -309,6 +321,77 @@ const today = nowEastern.toISOString().split('T')[0];
   datePicker?.addEventListener('change', (e) => {
     currentDate = (e.target as HTMLInputElement).value;
     loadNutrition(currentDate);
+  });
+
+  // Food search
+  async function searchFood(query: string) {
+    const resultsDiv = document.getElementById('search-results')!;
+    resultsDiv.classList.remove('hidden');
+    resultsDiv.innerHTML = '<p class="text-gray-400 text-sm">Searching...</p>';
+
+    try {
+      const res = await fetch(`/api/food-search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      if (data.foods && data.foods.length > 0) {
+        resultsDiv.innerHTML = data.foods.map((food: any) => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer food-result"
+               data-name="${food.name}"
+               data-calories="${food.calories}"
+               data-protein="${food.protein}"
+               data-carbs="${food.carbs}"
+               data-fat="${food.fat}">
+            <div>
+              <div class="font-medium">${food.name}</div>
+              <div class="text-xs text-gray-500">${food.servingSize || '100g'}</div>
+            </div>
+            <div class="text-right text-sm">
+              <div class="text-brand-orange font-medium">${food.protein}g protein</div>
+              <div class="text-gray-500">${food.calories} cal • ${food.fat}g fat</div>
+            </div>
+          </div>
+        `).join('');
+
+        // Add click handlers to add food
+        resultsDiv.querySelectorAll('.food-result').forEach(el => {
+          el.addEventListener('click', () => {
+            const foodEl = el as HTMLElement;
+            logMeal({
+              meal_type: 'snack',
+              description: foodEl.dataset.name,
+              calories: parseInt(foodEl.dataset.calories || '0'),
+              protein: parseInt(foodEl.dataset.protein || '0'),
+              carbs: parseInt(foodEl.dataset.carbs || '0'),
+              fat: parseInt(foodEl.dataset.fat || '0')
+            });
+            resultsDiv.classList.add('hidden');
+            (document.getElementById('food-search') as HTMLInputElement).value = '';
+          });
+        });
+
+        if (data.fallback) {
+          resultsDiv.innerHTML += '<p class="text-xs text-gray-400 mt-2">Using local database (USDA unavailable)</p>';
+        }
+      } else {
+        resultsDiv.innerHTML = '<p class="text-gray-400 text-sm">No foods found. Try a different search.</p>';
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      resultsDiv.innerHTML = '<p class="text-red-500 text-sm">Search failed. Try again.</p>';
+    }
+  }
+
+  document.getElementById('search-btn')?.addEventListener('click', () => {
+    const query = (document.getElementById('food-search') as HTMLInputElement).value.trim();
+    if (query) searchFood(query);
+  });
+
+  document.getElementById('food-search')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = (e.target as HTMLInputElement).value.trim();
+      if (query) searchFood(query);
+    }
   });
 
   // Water buttons
