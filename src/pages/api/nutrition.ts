@@ -122,6 +122,30 @@ export const POST: APIRoute = async ({ request, locals }) => {
           fat = excluded.fat,
           notes = excluded.notes
       `).bind(date, calories, protein, carbs, fat, notes).run();
+
+    } else if (data.type === 'delete_meal') {
+      // Delete a meal and subtract from daily totals
+      const { meal_id, date } = data;
+
+      // Get the meal first to know what to subtract
+      const meal = await db.prepare(`
+        SELECT * FROM meals WHERE id = ?
+      `).bind(meal_id).first();
+
+      if (meal) {
+        // Delete the meal
+        await db.prepare(`DELETE FROM meals WHERE id = ?`).bind(meal_id).run();
+
+        // Subtract from daily nutrition
+        await db.prepare(`
+          UPDATE nutrition_log SET
+            calories = MAX(0, calories - ?),
+            protein = MAX(0, protein - ?),
+            carbs = MAX(0, carbs - ?),
+            fat = MAX(0, fat - ?)
+          WHERE date = ?
+        `).bind(meal.calories || 0, meal.protein || 0, meal.carbs || 0, meal.fat || 0, date).run();
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

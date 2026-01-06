@@ -160,7 +160,7 @@ npx wrangler pages deploy dist
 - Created D1 database: `clark-stark-workout` (ID: `0dca19c9-6f87-4d70-9dc7-53fe9d5d51bf`)
 - Applied schema via Cloudflare Dashboard D1 Console
 - Deployed to Cloudflare Pages via GitHub integration
-- **Next:** Add D1 binding in Pages settings, polish UI, add Cloudflare Access
+- **Next:** Add D1 binding in Pages settings (Dashboard → Pages → clarkstark → Settings → Functions → D1 Database Bindings → Add: Variable=DB, Database=clark-stark-workout)
 
 ### Jan 5, 2026 (Session 2)
 - Changed brand color from coral to burnt orange (#cc5500)
@@ -172,6 +172,13 @@ npx wrangler pages deploy dist
 - Updated metrics: weight placeholder 250 lbs, goal 210 lbs (from 185/175)
 - Created seed-recipes.sql with 15 carnivore-friendly recipes
 - Added `/api/supplements` endpoint
+
+### Jan 5, 2026 (Session 3)
+- Fixed CSS variables for burnt orange (was still coral in global.css)
+- Added button press feedback (scale down on active)
+- Added delete meal functionality with confirmation
+- Created seed-supplements.sql with AM/PM supplement stack
+- Improved workout save error messaging for D1 binding issues
 
 ## Migration from Google Sheets
 

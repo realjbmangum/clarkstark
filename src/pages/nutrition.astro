@@ -202,16 +202,29 @@ const today = nowEastern.toISOString().split('T')[0];
       const mealsList = document.getElementById('meals-list')!;
       if (meals.length > 0) {
         mealsList.innerHTML = meals.map((m: any) => `
-          <div class="flex items-center justify-between py-2 border-b border-gray-100">
+          <div class="flex items-center justify-between py-2 border-b border-gray-100 group">
             <div>
               <span class="font-medium">${m.description || m.meal_type}</span>
               <span class="text-xs text-gray-400 ml-2">${m.meal_type}</span>
             </div>
-            <div class="text-sm text-gray-500">
-              ${m.protein}g protein • ${m.calories} cal
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">
+                ${m.protein}g protein • ${m.calories} cal
+              </span>
+              <button class="delete-meal text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${m.id}" title="Delete">✕</button>
             </div>
           </div>
         `).join('');
+
+        // Add delete handlers
+        mealsList.querySelectorAll('.delete-meal').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = (e.currentTarget as HTMLElement).dataset.id;
+            if (confirm('Delete this meal?')) {
+              await deleteMeal(id!);
+            }
+          });
+        });
       } else {
         mealsList.innerHTML = '<p class="text-gray-400 text-sm">No meals logged yet</p>';
       }
@@ -269,6 +282,26 @@ const today = nowEastern.toISOString().split('T')[0];
       }
     } catch (err) {
       console.error('Failed to log meal:', err);
+    }
+  }
+
+  async function deleteMeal(mealId: string) {
+    try {
+      const res = await fetch('/api/nutrition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'delete_meal',
+          meal_id: parseInt(mealId),
+          date: currentDate
+        })
+      });
+
+      if (res.ok) {
+        loadNutrition(currentDate);
+      }
+    } catch (err) {
+      console.error('Failed to delete meal:', err);
     }
   }
 

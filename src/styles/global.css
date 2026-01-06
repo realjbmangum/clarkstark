@@ -4,8 +4,8 @@
 
 /* Gumroad-inspired light theme */
 :root {
-  --brand-orange: #ff6154;
-  --brand-peach: #ffb088;
+  --brand-orange: #cc5500;
+  --brand-peach: #e87d3e;
   --brand-pink: #ffd1dc;
   --bg-main: #fafafa;
   --bg-card: #ffffff;
@@ -30,15 +30,15 @@ body {
 }
 
 .btn-primary {
-  @apply bg-brand-orange text-white hover:bg-opacity-90 shadow-md hover:shadow-lg;
+  @apply bg-brand-orange text-white hover:bg-opacity-90 shadow-md hover:shadow-lg active:scale-95 active:shadow-sm;
 }
 
 .btn-secondary {
-  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95 active:bg-gray-300;
 }
 
 .btn-ghost {
-  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100;
+  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:scale-95 active:bg-gray-200;
 }
 
 /* Input styles */

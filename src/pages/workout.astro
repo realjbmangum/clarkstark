@@ -301,12 +301,17 @@ const typeColors: Record<string, string> = {
 
       const result = await res.json();
 
-      if (res.ok) {
+      if (res.ok && result.success) {
         alert('Workout saved!');
         window.location.href = '/';
       } else {
         console.error('API Error:', result);
-        alert('Failed to save: ' + (result.error || 'Unknown error'));
+        const errorMsg = result.error || 'Unknown error';
+        if (errorMsg.includes('Database not configured')) {
+          alert('Database not connected. Check D1 binding in Cloudflare Pages settings.');
+        } else {
+          alert('Failed to save: ' + errorMsg);
+        }
         btn.disabled = false;
         btn.textContent = 'Save Workout';
       }
