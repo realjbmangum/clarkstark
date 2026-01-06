@@ -86,7 +86,7 @@ const todaysWorkout = schedule[dayOfWeek] || schedule.monday;
     </div>
 
     <!-- Progress Section -->
-    <div class="grid md:grid-cols-2 gap-6">
+    <div class="grid md:grid-cols-3 gap-6">
       <!-- Water Progress -->
       <div class="card">
         <h3 class="font-semibold mb-4">Water Intake</h3>
@@ -98,10 +98,9 @@ const todaysWorkout = schedule[dayOfWeek] || schedule.monday;
           </div>
           <span class="text-sm text-gray-500" id="water-label">0 / 3L</span>
         </div>
-        <div class="flex gap-2 mt-4">
+        <div class="flex gap-2 mt-4 flex-wrap">
           <button class="water-btn btn btn-ghost text-sm" data-amount="0.25">+250ml</button>
           <button class="water-btn btn btn-ghost text-sm" data-amount="0.5">+500ml</button>
-          <button class="water-btn btn btn-ghost text-sm" data-amount="0.75">+750ml</button>
           <button class="water-btn btn btn-ghost text-sm" data-amount="1">+1L</button>
         </div>
       </div>
@@ -119,6 +118,22 @@ const todaysWorkout = schedule[dayOfWeek] || schedule.monday;
         </div>
         <div class="flex gap-2 mt-4">
           <a href="/nutrition" class="btn btn-ghost text-sm">Log Meal →</a>
+        </div>
+      </div>
+
+      <!-- Supplements Progress -->
+      <div class="card">
+        <h3 class="font-semibold mb-4">Supplements</h3>
+        <div class="flex items-center gap-4">
+          <div class="flex-1">
+            <div class="progress-bar">
+              <div class="progress-fill bg-purple-500" id="supps-progress" style="width: 0%"></div>
+            </div>
+          </div>
+          <span class="text-sm text-gray-500" id="supps-label">0 / 0</span>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <a href="/supplements" class="btn btn-ghost text-sm">Check Off →</a>
         </div>
       </div>
     </div>
@@ -174,6 +189,42 @@ const todaysWorkout = schedule[dayOfWeek] || schedule.monday;
       const proteinPct = Math.min(100, (proteinTotal / proteinTarget) * 100);
       document.getElementById('protein-progress')!.style.width = proteinPct + '%';
       document.getElementById('protein-label')!.textContent = `${proteinTotal} / ${proteinTarget}g`;
+
+      // Update supplements progress
+      const suppsTaken = data.supplements?.taken || 0;
+      const suppsTotal = data.supplements?.total || 0;
+      const suppsPct = suppsTotal > 0 ? Math.min(100, (suppsTaken / suppsTotal) * 100) : 0;
+      document.getElementById('supps-progress')!.style.width = suppsPct + '%';
+      document.getElementById('supps-label')!.textContent = `${suppsTaken} / ${suppsTotal}`;
+
+      // Update week calendar - highlight days with workouts
+      const weekDates = data.weekWorkoutDates || [];
+      const todayDate = data.today?.date;
+      document.querySelectorAll('.week-day').forEach((el, i) => {
+        const dayEl = el as HTMLElement;
+        // Calculate date for this day of week (0=Mon, 6=Sun)
+        const dayNum = i;
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(today);
+        monday.setDate(monday.getDate() + mondayOffset);
+        const thisDay = new Date(monday);
+        thisDay.setDate(thisDay.getDate() + dayNum);
+        const dateStr = thisDay.toISOString().split('T')[0];
+
+        // Check if workout completed on this day
+        if (weekDates.includes(dateStr)) {
+          dayEl.classList.add('bg-green-500', 'text-white');
+          dayEl.classList.remove('bg-gray-100');
+          dayEl.textContent = '✓';
+        } else if (dateStr === todayDate) {
+          dayEl.classList.add('ring-2', 'ring-brand-orange');
+          dayEl.textContent = thisDay.getDate().toString();
+        } else {
+          dayEl.textContent = thisDay.getDate().toString();
+        }
+      });
 
       // Update goals
       const goalsList = document.getElementById('goals-list')!;

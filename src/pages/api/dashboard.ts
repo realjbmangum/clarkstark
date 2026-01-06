@@ -14,9 +14,21 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   }
 
-  const today = new Date().toISOString().split('T')[0];
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  // Use Eastern timezone
+  const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+  const nowEastern = new Date(easternDate);
+  const today = nowEastern.toISOString().split('T')[0];
+
+  const weekAgoDate = new Date(nowEastern);
+  weekAgoDate.setDate(weekAgoDate.getDate() - 7);
+  const weekAgo = weekAgoDate.toISOString().split('T')[0];
+
+  // Get start of current week (Monday)
+  const dayOfWeek = nowEastern.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(nowEastern);
+  monday.setDate(monday.getDate() + mondayOffset);
+  const weekStart = monday.toISOString().split('T')[0];
 
   try {
     // Today's workout
@@ -69,6 +81,27 @@ export const GET: APIRoute = async ({ locals }) => {
       return acc;
     }, {} as Record<string, string>);
 
+    // Get this week's workouts (for calendar)
+    const weekWorkoutDates = await db.prepare(`
+      SELECT date FROM workout_log WHERE date >= ? ORDER BY date
+    `).bind(weekStart).all();
+
+    // Get supplements progress for today
+    const allSupplements = await db.prepare(`
+      SELECT COUNT(*) as total FROM supplements WHERE active = 1
+    `).first() as { total: number };
+
+    const todayChecklist = await db.prepare(`
+      SELECT supplements_taken FROM daily_checklist WHERE date = ?
+    `).bind(today).first();
+
+    let supplementsTaken = 0;
+    if (todayChecklist?.supplements_taken) {
+      try {
+        supplementsTaken = JSON.parse(todayChecklist.supplements_taken as string).length;
+      } catch {}
+    }
+
     return new Response(JSON.stringify({
       today: {
         date: today,
@@ -86,6 +119,11 @@ export const GET: APIRoute = async ({ locals }) => {
       },
       goals: goals.results,
       settings: settingsMap,
+      weekWorkoutDates: (weekWorkoutDates.results as { date: string }[]).map(w => w.date),
+      supplements: {
+        taken: supplementsTaken,
+        total: allSupplements?.total || 0,
+      },
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
