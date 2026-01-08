@@ -1,0 +1,296 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
+---
+
+<Layout title="Goals" activeNav="goals">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Goals</h1>
+        <p class="text-gray-500">Track your transformation targets</p>
+      </div>
+      <button id="add-goal-btn" class="btn btn-primary">+ Add Goal</button>
+    </div>
+
+    <!-- Active Goals -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Active Goals</h3>
+      <div id="active-goals" class="space-y-4">
+        <p class="text-gray-400 text-sm">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Achieved Goals -->
+    <div class="card">
+      <h3 class="font-semibold mb-4">Achieved</h3>
+      <div id="achieved-goals" class="space-y-3">
+        <p class="text-gray-400 text-sm">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="goal-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4" id="modal-title">Add Goal</h2>
+        <form id="goal-form" class="space-y-4">
+          <input type="hidden" id="goal-id" />
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Goal Type</label>
+            <select id="goal-type" required class="w-full">
+              <option value="weight">Weight</option>
+              <option value="waist">Waist</option>
+              <option value="arms">Arms</option>
+              <option value="chest">Chest</option>
+              <option value="strength">Strength</option>
+              <option value="habit">Habit</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">Description</label>
+            <input type="text" id="goal-description" class="w-full" placeholder="e.g., Get to 210 lbs" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-500 mb-1">Target Value</label>
+              <input type="number" id="goal-target" required class="w-full" step="0.1" placeholder="210" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-500 mb-1">Unit</label>
+              <input type="text" id="goal-unit" class="w-full" placeholder="lbs, inches, etc" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-500 mb-1">Current Value</label>
+              <input type="number" id="goal-current" class="w-full" step="0.1" placeholder="250" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-500 mb-1">Target Date</label>
+              <input type="date" id="goal-date" class="w-full" />
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="cancel-modal" class="btn btn-ghost">Cancel</button>
+            <button type="button" id="delete-goal" class="btn btn-ghost text-red-500 ml-auto hidden">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let goals: any[] = [];
+
+  const typeLabels: Record<string, string> = {
+    weight: 'Weight',
+    waist: 'Waist',
+    arms: 'Arms',
+    chest: 'Chest',
+    strength: 'Strength',
+    habit: 'Habit',
+    other: 'Other'
+  };
+
+  const typeIcons: Record<string, string> = {
+    weight: '???',
+    waist: '????',
+    arms: '????',
+    chest: '????',
+    strength: '????',
+    habit: '???',
+    other: '????'
+  };
+
+  async function loadGoals() {
+    try {
+      const res = await fetch('/api/goals');
+      const data = await res.json();
+      goals = data.goals || [];
+      renderGoals();
+    } catch (err) {
+      console.error('Failed to load goals:', err);
+    }
+  }
+
+  function renderGoals() {
+    const activeList = document.getElementById('active-goals')!;
+    const achievedList = document.getElementById('achieved-goals')!;
+
+    const active = goals.filter(g => !g.achieved);
+    const achieved = goals.filter(g => g.achieved);
+
+    if (active.length === 0) {
+      activeList.innerHTML = `
+        <div class="text-center py-6">
+          <p class="text-gray-400 mb-4">No active goals yet</p>
+          <button onclick="document.getElementById('add-goal-btn')?.click()" class="btn btn-primary">Set Your First Goal</button>
+        </div>
+      `;
+    } else {
+      activeList.innerHTML = active.map(g => {
+        const progress = g.current_value && g.target_value
+          ? calculateProgress(g)
+          : 0;
+
+        return `
+          <div class="p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100" data-id="${g.id}">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">${typeIcons[g.type] || '????'}</span>
+                <span class="font-medium">${g.description || typeLabels[g.type]}</span>
+              </div>
+              <span class="text-sm text-gray-500">${g.current_value || '-'} / ${g.target_value} ${g.unit || ''}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progress}%"></div>
+            </div>
+            <div class="flex items-center justify-between mt-2 text-sm text-gray-400">
+              <span>${progress.toFixed(0)}% complete</span>
+              ${g.target_date ? `<span>Target: ${new Date(g.target_date).toLocaleDateString()}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers
+      activeList.querySelectorAll('[data-id]').forEach(el => {
+        el.addEventListener('click', () => editGoal((el as HTMLElement).dataset.id!));
+      });
+    }
+
+    if (achieved.length === 0) {
+      achievedList.innerHTML = '<p class="text-gray-400 text-sm">No achieved goals yet. Keep pushing!</p>';
+    } else {
+      achievedList.innerHTML = achieved.map(g => `
+        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">???</span>
+            <span class="text-gray-600">${g.description || typeLabels[g.type]}</span>
+          </div>
+          <span class="text-sm text-gray-500">${g.target_value} ${g.unit || ''}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  function calculateProgress(goal: any): number {
+    const current = goal.current_value;
+    const target = goal.target_value;
+
+    if (!current || !target) return 0;
+
+    // For weight/waist, lower is better (going down)
+    if (goal.type === 'weight' || goal.type === 'waist') {
+      // Assuming starting point was higher than target
+      // We need a reference point - use a reasonable max
+      const start = current > target ? current * 1.2 : current; // rough estimate
+      if (current <= target) return 100;
+      // Calculate how far we've come
+      const startingPoint = goal.starting_value || (target * 1.2); // estimate 20% above target as start
+      const totalToLose = startingPoint - target;
+      const lost = startingPoint - current;
+      return Math.min(100, Math.max(0, (lost / totalToLose) * 100));
+    }
+
+    // For arms, chest, strength - higher is better (going up)
+    const pct = (current / target) * 100;
+    return Math.min(100, Math.max(0, pct));
+  }
+
+  function showModal() {
+    document.getElementById('goal-modal')?.classList.remove('hidden');
+    document.getElementById('goal-modal')?.classList.add('flex');
+  }
+
+  function hideModal() {
+    document.getElementById('goal-modal')?.classList.add('hidden');
+    document.getElementById('goal-modal')?.classList.remove('flex');
+    (document.getElementById('goal-form') as HTMLFormElement).reset();
+    (document.getElementById('goal-id') as HTMLInputElement).value = '';
+    document.getElementById('modal-title')!.textContent = 'Add Goal';
+    document.getElementById('delete-goal')?.classList.add('hidden');
+  }
+
+  function editGoal(id: string) {
+    const goal = goals.find(g => g.id === parseInt(id));
+    if (!goal) return;
+
+    document.getElementById('modal-title')!.textContent = 'Edit Goal';
+    (document.getElementById('goal-id') as HTMLInputElement).value = goal.id;
+    (document.getElementById('goal-type') as HTMLSelectElement).value = goal.type;
+    (document.getElementById('goal-description') as HTMLInputElement).value = goal.description || '';
+    (document.getElementById('goal-target') as HTMLInputElement).value = goal.target_value || '';
+    (document.getElementById('goal-unit') as HTMLInputElement).value = goal.unit || '';
+    (document.getElementById('goal-current') as HTMLInputElement).value = goal.current_value || '';
+    (document.getElementById('goal-date') as HTMLInputElement).value = goal.target_date || '';
+    document.getElementById('delete-goal')?.classList.remove('hidden');
+    showModal();
+  }
+
+  // Event listeners
+  document.getElementById('add-goal-btn')?.addEventListener('click', showModal);
+  document.getElementById('cancel-modal')?.addEventListener('click', hideModal);
+  document.getElementById('goal-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('goal-modal')) hideModal();
+  });
+
+  document.getElementById('goal-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = (document.getElementById('goal-id') as HTMLInputElement).value;
+
+    const data = {
+      action: id ? 'update' : 'create',
+      id: id ? parseInt(id) : undefined,
+      type: (document.getElementById('goal-type') as HTMLSelectElement).value,
+      description: (document.getElementById('goal-description') as HTMLInputElement).value || null,
+      target_value: parseFloat((document.getElementById('goal-target') as HTMLInputElement).value),
+      unit: (document.getElementById('goal-unit') as HTMLInputElement).value || null,
+      current_value: (document.getElementById('goal-current') as HTMLInputElement).value
+        ? parseFloat((document.getElementById('goal-current') as HTMLInputElement).value)
+        : null,
+      target_date: (document.getElementById('goal-date') as HTMLInputElement).value || null,
+    };
+
+    try {
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        hideModal();
+        loadGoals();
+      }
+    } catch (err) {
+      console.error('Failed to save goal:', err);
+    }
+  });
+
+  document.getElementById('delete-goal')?.addEventListener('click', async () => {
+    const id = (document.getElementById('goal-id') as HTMLInputElement).value;
+    if (!id || !confirm('Delete this goal?')) return;
+
+    try {
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: parseInt(id) })
+      });
+
+      if (res.ok) {
+        hideModal();
+        loadGoals();
+      }
+    } catch (err) {
+      console.error('Failed to delete goal:', err);
+    }
+  });
+
+  loadGoals();
+</script>
