@@ -64,7 +64,7 @@ export const prerender = false;
             </div>
           </div>
 
-          <div class="grid grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm text-gray-500 mb-1">Calories</label>
               <input type="number" id="recipe-calories" class="w-full" placeholder="400" />
@@ -144,7 +144,7 @@ export const prerender = false;
             ${r.favorite ? '<span class="text-yellow-500">★</span>' : ''}
           </div>
           <div class="text-sm text-gray-500 mb-3">${r.category}</div>
-          <div class="grid grid-cols-4 gap-2 text-center text-sm">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-sm">
             <div>
               <div class="font-medium">${r.calories || '-'}</div>
               <div class="text-xs text-gray-400">cal</div>

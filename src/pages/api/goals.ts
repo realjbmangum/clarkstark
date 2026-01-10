@@ -2,8 +2,22 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Helper function to validate date format (YYYY-MM-DD)
+function isValidDate(dateString: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
+// Helper function to validate numeric value
+function isValidNumber(value: unknown): boolean {
+  if (value === null || value === undefined) return true; // Optional fields
+  const num = Number(value);
+  return !isNaN(num) && isFinite(num);
+}
+
 // GET - get all goals
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ url, locals }) => {
   const runtime = (locals as any).runtime;
   const db = runtime?.env?.DB;
 
@@ -14,12 +28,19 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   }
 
+  // Pagination parameters
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 100);
+  const offset = parseInt(url.searchParams.get('offset') || '0');
+
   try {
     const goals = await db.prepare(`
-      SELECT * FROM goals ORDER BY achieved ASC, created_at DESC
-    `).all();
+      SELECT * FROM goals ORDER BY achieved ASC, created_at DESC LIMIT ? OFFSET ?
+    `).bind(limit, offset).all();
 
-    return new Response(JSON.stringify({ goals: goals.results }), {
+    return new Response(JSON.stringify({
+      goals: goals.results,
+      pagination: { limit, offset }
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -48,8 +69,45 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const data = await request.json();
     const { action } = data;
 
+    // Validate action field
+    if (!action || !['create', 'update', 'update_progress', 'achieve', 'delete'].includes(action)) {
+      return new Response(JSON.stringify({ error: 'Invalid action. Must be create, update, update_progress, achieve, or delete' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'create') {
       const { type, target_value, target_date, current_value, unit, description } = data;
+
+      // Validate required fields for create
+      if (!type || typeof type !== 'string' || type.trim() === '') {
+        return new Response(JSON.stringify({ error: 'Type is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidNumber(target_value)) {
+        return new Response(JSON.stringify({ error: 'target_value must be a valid number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (target_date && !isValidDate(target_date)) {
+        return new Response(JSON.stringify({ error: 'Invalid target_date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidNumber(current_value)) {
+        return new Response(JSON.stringify({ error: 'current_value must be a valid number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       await db.prepare(`
         INSERT INTO goals (type, target_value, target_date, current_value, unit, description)
@@ -64,6 +122,42 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     if (action === 'update') {
       const { id, type, target_value, target_date, current_value, unit, description } = data;
+
+      // Validate required fields for update
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!type || typeof type !== 'string' || type.trim() === '') {
+        return new Response(JSON.stringify({ error: 'Type is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidNumber(target_value)) {
+        return new Response(JSON.stringify({ error: 'target_value must be a valid number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (target_date && !isValidDate(target_date)) {
+        return new Response(JSON.stringify({ error: 'Invalid target_date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidNumber(current_value)) {
+        return new Response(JSON.stringify({ error: 'current_value must be a valid number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       await db.prepare(`
         UPDATE goals
@@ -80,6 +174,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (action === 'update_progress') {
       const { id, current_value } = data;
 
+      // Validate required fields for update_progress
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidNumber(current_value)) {
+        return new Response(JSON.stringify({ error: 'current_value must be a valid number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       await db.prepare(`
         UPDATE goals SET current_value = ? WHERE id = ?
       `).bind(current_value, id).run();
@@ -93,6 +202,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (action === 'achieve') {
       const { id } = data;
 
+      // Validate required fields for achieve
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       await db.prepare(`
         UPDATE goals SET achieved = 1 WHERE id = ?
       `).bind(id).run();
@@ -105,6 +222,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     if (action === 'delete') {
       const { id } = data;
+
+      // Validate required fields for delete
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       await db.prepare(`DELETE FROM goals WHERE id = ?`).bind(id).run();
 

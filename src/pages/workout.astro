@@ -59,7 +59,7 @@ const typeColors: Record<string, string> = {
             <ul class="ml-4 mt-1 space-y-1">
               {workout.warmup.mobility.map((m) => (
                 <li class="flex items-center gap-2">
-                  <input type="checkbox" class="warmup-check rounded" />
+                  <input type="checkbox" class="warmup-check rounded" aria-label={`Complete ${m}`} />
                   <span>{m}</span>
                 </li>
               ))}
@@ -94,6 +94,7 @@ const typeColors: Record<string, string> = {
                       placeholder="Reps"
                       class="w-20 text-center text-sm"
                       data-field="reps"
+                      aria-label={`Reps for ${ex.name} set ${setIdx + 1}`}
                     />
                     <span class="text-gray-400">x</span>
                     <input
@@ -101,8 +102,9 @@ const typeColors: Record<string, string> = {
                       placeholder="lbs"
                       class="w-20 text-center text-sm"
                       data-field="weight"
+                      aria-label={`Weight in pounds for ${ex.name} set ${setIdx + 1}`}
                     />
-                    <button class="complete-set ml-auto text-gray-400 hover:text-green-500">
+                    <button class="complete-set ml-auto text-gray-400 hover:text-green-500" aria-label={`Mark set ${setIdx + 1} complete`}>
                       ✓
                     </button>
                   </div>
@@ -132,8 +134,8 @@ const typeColors: Record<string, string> = {
                   {Array.from({ length: ex.sets }).map((_, setIdx) => (
                     <div class="set-row" data-set={setIdx + 1}>
                       <span class="text-sm text-gray-400 w-16">Set {setIdx + 1}</span>
-                      <input type="number" placeholder="Reps" class="w-20 text-center text-sm" data-field="reps" />
-                      <button class="complete-set ml-auto text-gray-400 hover:text-green-500">✓</button>
+                      <input type="number" placeholder="Reps" class="w-20 text-center text-sm" data-field="reps" aria-label={`Reps for ${ex.name} set ${setIdx + 1}`} />
+                      <button class="complete-set ml-auto text-gray-400 hover:text-green-500" aria-label={`Mark set ${setIdx + 1} complete`}>✓</button>
                     </div>
                   ))}
                 </div>
@@ -256,15 +258,8 @@ const typeColors: Record<string, string> = {
 
   // Save workout
   const saveBtn = document.getElementById('save-workout');
-  console.log('Save button found:', saveBtn);
-  console.log('Variables:', { workoutId, workoutName, today });
-
-  if (!saveBtn) {
-    console.error('Save button not found!');
-  }
 
   saveBtn?.addEventListener('click', async () => {
-    console.log('Save clicked!');
     const btn = saveBtn;
     btn.disabled = true;
     btn.textContent = 'Saving...';
@@ -302,7 +297,6 @@ const typeColors: Record<string, string> = {
       notes: finisherCompleted ? 'Finisher completed' : null,
       exercises
     };
-    console.log('Sending payload:', payload);
 
     try {
       const res = await fetch('/api/workouts', {
@@ -311,9 +305,7 @@ const typeColors: Record<string, string> = {
         body: JSON.stringify(payload)
       });
 
-      console.log('Response status:', res.status);
       const result = await res.json();
-      console.log('Response data:', result);
 
       if (res.ok && result.success) {
         alert('Workout saved!');

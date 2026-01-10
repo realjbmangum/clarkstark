@@ -34,17 +34,48 @@ const navItems = [
 
     <div class="max-w-6xl mx-auto px-4 py-6">
       <!-- Header -->
-      <header class="flex items-center justify-between mb-8">
-        <a href="/" class="flex items-center gap-2">
+      <header class="flex items-center justify-between mb-8 relative">
+        <a href="/" class="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
           <span class="text-2xl">💪</span>
           <span class="text-xl font-bold">ClarkStark</span>
         </a>
 
-        <nav class="flex items-center gap-1">
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center gap-1">
           {navItems.map(item => (
             <a
               href={item.href}
               class={`nav-link ${activeNav === item.id ? 'active' : ''}`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <!-- Mobile Hamburger Button -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Mobile Navigation Menu -->
+        <nav
+          id="mobile-menu"
+          class="hidden absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
+        >
+          {navItems.map(item => (
+            <a
+              href={item.href}
+              class={`block px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-inset ${activeNav === item.id ? 'bg-brand-orange text-white hover:bg-brand-orange hover:text-white' : ''}`}
             >
               {item.label}
             </a>
@@ -62,6 +93,58 @@ const navItems = [
         ClarkStark &copy; 2026 - Best Shape at 50
       </footer>
     </div>
+
+    <!-- Mobile Menu Script -->
+    <script>
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = document.getElementById('menu-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openMenu() {
+        mobileMenu?.classList.remove('hidden');
+        menuIcon?.classList.add('hidden');
+        closeIcon?.classList.remove('hidden');
+        menuBtn?.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeMenu() {
+        mobileMenu?.classList.add('hidden');
+        menuIcon?.classList.remove('hidden');
+        closeIcon?.classList.add('hidden');
+        menuBtn?.setAttribute('aria-expanded', 'false');
+      }
+
+      function toggleMenu() {
+        const isHidden = mobileMenu?.classList.contains('hidden');
+        if (isHidden) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
+      }
+
+      // Toggle on button click
+      menuBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMenu();
+      });
+
+      // Close when clicking outside
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (!mobileMenu?.contains(target) && !menuBtn?.contains(target)) {
+          closeMenu();
+        }
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeMenu();
+        }
+      });
+    </script>
   </body>
 </html>
 

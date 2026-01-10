@@ -97,13 +97,13 @@ export const prerender = false;
   };
 
   const typeIcons: Record<string, string> = {
-    weight: '???',
-    waist: '????',
-    arms: '????',
-    chest: '????',
-    strength: '????',
-    habit: '???',
-    other: '????'
+    weight: '⚖️',
+    waist: '📏',
+    arms: '💪',
+    chest: '👕',
+    strength: '🏋️',
+    habit: '✅',
+    other: '🎯'
   };
 
   async function loadGoals() {
@@ -169,7 +169,7 @@ export const prerender = false;
       achievedList.innerHTML = achieved.map(g => `
         <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
           <div class="flex items-center gap-2">
-            <span class="text-green-500">???</span>
+            <span class="text-green-500">✅</span>
             <span class="text-gray-600">${g.description || typeLabels[g.type]}</span>
           </div>
           <span class="text-sm text-gray-500">${g.target_value} ${g.unit || ''}</span>

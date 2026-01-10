@@ -2,6 +2,20 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Helper function to validate date format (YYYY-MM-DD)
+function isValidDate(dateString: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
+// Helper function to validate numeric value
+function isValidNumber(value: unknown): boolean {
+  if (value === null || value === undefined) return true; // Optional fields
+  const num = Number(value);
+  return !isNaN(num) && isFinite(num);
+}
+
 // GET - get water intake for a date
 export const GET: APIRoute = async ({ url, locals }) => {
   const runtime = (locals as any).runtime;
@@ -69,6 +83,22 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const data = await request.json();
     const date = data.date || new Date().toISOString().split('T')[0];
     const amount = data.amount_liters || data.amount || 0.5; // default 500ml
+
+    // Validate date if provided
+    if (data.date && !isValidDate(data.date)) {
+      return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate amount
+    if (!isValidNumber(amount) || (amount !== undefined && amount <= 0)) {
+      return new Response(JSON.stringify({ error: 'Amount must be a positive number' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     await db.prepare(`
       INSERT INTO water_log (date, amount_liters)

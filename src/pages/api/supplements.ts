@@ -2,6 +2,13 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Helper function to validate date format (YYYY-MM-DD)
+function isValidDate(dateString: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
 // GET - get supplements and daily log
 export const GET: APIRoute = async ({ url, locals }) => {
   const runtime = (locals as any).runtime;
@@ -16,11 +23,15 @@ export const GET: APIRoute = async ({ url, locals }) => {
 
   const date = url.searchParams.get('date');
 
+  // Pagination parameters
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 100);
+  const offset = parseInt(url.searchParams.get('offset') || '0');
+
   try {
-    // Get all supplements
+    // Get supplements with pagination
     const supplements = await db.prepare(`
-      SELECT * FROM supplements ORDER BY timing, name
-    `).all();
+      SELECT * FROM supplements ORDER BY timing, name LIMIT ? OFFSET ?
+    `).bind(limit, offset).all();
 
     let taken: number[] = [];
 
@@ -39,7 +50,8 @@ export const GET: APIRoute = async ({ url, locals }) => {
 
     return new Response(JSON.stringify({
       supplements: supplements.results,
-      taken
+      taken,
+      pagination: { limit, offset }
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -69,9 +81,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const data = await request.json();
     const { action } = data;
 
+    // Validate action field
+    if (!action || !['create', 'update', 'delete', 'log'].includes(action)) {
+      return new Response(JSON.stringify({ error: 'Invalid action. Must be create, update, delete, or log' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'create') {
       // Create new supplement
       const { name, dosage, timing, notes, active } = data;
+
+      // Validate required fields for create
+      if (!name || typeof name !== 'string' || name.trim() === '') {
+        return new Response(JSON.stringify({ error: 'Name is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       await db.prepare(`
         INSERT INTO supplements (name, dosage, timing, notes, active)
         VALUES (?, ?, ?, ?, ?)
@@ -86,6 +115,22 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (action === 'update') {
       // Update supplement
       const { id, name, dosage, timing, notes, active } = data;
+
+      // Validate required fields for update
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!name || typeof name !== 'string' || name.trim() === '') {
+        return new Response(JSON.stringify({ error: 'Name is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       await db.prepare(`
         UPDATE supplements SET name = ?, dosage = ?, timing = ?, notes = ?, active = ?
         WHERE id = ?
@@ -100,6 +145,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (action === 'delete') {
       // Delete supplement
       const { id } = data;
+
+      // Validate required fields for delete
+      if (!id || typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       await db.prepare('DELETE FROM supplements WHERE id = ?').bind(id).run();
 
       return new Response(JSON.stringify({ success: true }), {
@@ -111,6 +165,35 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (action === 'log') {
       // Log/unlog supplement for a date
       const { date, supplement_id, taken } = data;
+
+      // Validate required fields for log
+      if (!date || typeof date !== 'string') {
+        return new Response(JSON.stringify({ error: 'Date is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidDate(date)) {
+        return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!supplement_id || typeof supplement_id !== 'number') {
+        return new Response(JSON.stringify({ error: 'supplement_id is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (typeof taken !== 'boolean') {
+        return new Response(JSON.stringify({ error: 'taken is required and must be a boolean' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       // Get current supplements_taken for this date
       const checklist = await db.prepare(`

@@ -2,6 +2,20 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Helper function to validate date format (YYYY-MM-DD)
+function isValidDate(dateString: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
+// Helper function to validate numeric value
+function isValidNumber(value: unknown): boolean {
+  if (value === null || value === undefined) return true; // Optional fields
+  const num = Number(value);
+  return !isNaN(num) && isFinite(num);
+}
+
 // GET - get nutrition log for a date or range
 export const GET: APIRoute = async ({ url, locals }) => {
   const runtime = (locals as any).runtime;
@@ -88,9 +102,43 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const data = await request.json();
 
+    // Validate type field
+    if (!data.type || !['meal', 'daily', 'delete_meal'].includes(data.type)) {
+      return new Response(JSON.stringify({ error: 'Invalid type. Must be meal, daily, or delete_meal' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     if (data.type === 'meal') {
       // Log individual meal
       const { date, meal_type, description, calories, protein, carbs, fat } = data;
+
+      // Validate required fields for meal
+      if (!date || typeof date !== 'string') {
+        return new Response(JSON.stringify({ error: 'Date is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidDate(date)) {
+        return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Validate numeric fields
+      const numericFields = { calories, protein, carbs, fat };
+      for (const [field, value] of Object.entries(numericFields)) {
+        if (!isValidNumber(value)) {
+          return new Response(JSON.stringify({ error: `${field} must be a valid number` }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
 
       await db.prepare(`
         INSERT INTO meals (date, meal_type, description, calories, protein, carbs, fat)
@@ -112,6 +160,32 @@ export const POST: APIRoute = async ({ request, locals }) => {
       // Update daily summary directly
       const { date, calories, protein, carbs, fat, notes } = data;
 
+      // Validate required fields for daily
+      if (!date || typeof date !== 'string') {
+        return new Response(JSON.stringify({ error: 'Date is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidDate(date)) {
+        return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Validate numeric fields
+      const numericFields = { calories, protein, carbs, fat };
+      for (const [field, value] of Object.entries(numericFields)) {
+        if (!isValidNumber(value)) {
+          return new Response(JSON.stringify({ error: `${field} must be a valid number` }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       await db.prepare(`
         INSERT INTO nutrition_log (date, calories, protein, carbs, fat, notes)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -126,6 +200,28 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } else if (data.type === 'delete_meal') {
       // Delete a meal and subtract from daily totals
       const { meal_id, date } = data;
+
+      // Validate required fields for delete_meal
+      if (!meal_id || typeof meal_id !== 'number') {
+        return new Response(JSON.stringify({ error: 'meal_id is required and must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!date || typeof date !== 'string') {
+        return new Response(JSON.stringify({ error: 'Date is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!isValidDate(date)) {
+        return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       // Get the meal first to know what to subtract
       const meal = await db.prepare(`

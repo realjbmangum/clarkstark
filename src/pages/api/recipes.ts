@@ -2,6 +2,13 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+// Helper function to validate numeric value
+function isValidNumber(value: unknown): boolean {
+  if (value === null || value === undefined) return true; // Optional fields
+  const num = Number(value);
+  return !isNaN(num) && isFinite(num);
+}
+
 // GET - get recipes
 export const GET: APIRoute = async ({ url, locals }) => {
   const runtime = (locals as any).runtime;
@@ -31,9 +38,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
+      // Pagination parameters
+      const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 100);
+      const offset = parseInt(url.searchParams.get('offset') || '0');
+
       let query = 'SELECT * FROM recipes';
       const conditions = [];
-      const bindings = [];
+      const bindings: (string | number)[] = [];
 
       if (category) {
         conditions.push('category = ?');
@@ -48,14 +59,16 @@ export const GET: APIRoute = async ({ url, locals }) => {
         query += ' WHERE ' + conditions.join(' AND ');
       }
 
-      query += ' ORDER BY name';
+      query += ' ORDER BY name LIMIT ? OFFSET ?';
+      bindings.push(limit, offset);
 
       const stmt = db.prepare(query);
-      result = bindings.length > 0
-        ? await stmt.bind(...bindings).all()
-        : await stmt.all();
+      result = await stmt.bind(...bindings).all();
 
-      return new Response(JSON.stringify({ recipes: result.results }), {
+      return new Response(JSON.stringify({
+        recipes: result.results,
+        pagination: { limit, offset }
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -88,11 +101,52 @@ export const POST: APIRoute = async ({ request, locals }) => {
       calories, protein, carbs, fat, ingredients, instructions, notes, favorite
     } = data;
 
+    // Validate required fields
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return new Response(JSON.stringify({ error: 'Name is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate numeric fields
+    const numericFields = { prep_time, cook_time, servings, calories, protein, carbs, fat };
+    for (const [field, value] of Object.entries(numericFields)) {
+      if (!isValidNumber(value)) {
+        return new Response(JSON.stringify({ error: `${field} must be a valid number` }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // Validate ingredients and instructions are arrays if provided
+    if (ingredients && !Array.isArray(ingredients)) {
+      return new Response(JSON.stringify({ error: 'Ingredients must be an array' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (instructions && !Array.isArray(instructions)) {
+      return new Response(JSON.stringify({ error: 'Instructions must be an array' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     // Convert arrays to JSON strings
     const ingredientsJson = JSON.stringify(ingredients || []);
     const instructionsJson = JSON.stringify(instructions || []);
 
     if (id) {
+      // Validate id for update
+      if (typeof id !== 'number') {
+        return new Response(JSON.stringify({ error: 'ID must be a number' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       // Update existing
       await db.prepare(`
         UPDATE recipes SET

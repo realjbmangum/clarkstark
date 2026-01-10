@@ -16,11 +16,12 @@ const today = nowEastern.toISOString().split('T')[0];
         <h1 class="text-2xl font-bold">Nutrition</h1>
         <p class="text-gray-500">Track meals and macros</p>
       </div>
+      <label for="date-picker" class="sr-only">Select date</label>
       <input type="date" id="date-picker" value={today} class="rounded-xl" />
     </div>
 
     <!-- Daily Summary -->
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="stat-card">
         <div class="stat-value" id="total-calories">0</div>
         <div class="stat-label">Calories</div>
@@ -128,6 +129,7 @@ const today = nowEastern.toISOString().split('T')[0];
     <div class="card">
       <h3 class="font-semibold mb-4">Search Food Database</h3>
       <div class="flex gap-2 mb-4">
+        <label for="food-search" class="sr-only">Search foods</label>
         <input type="text" id="food-search" placeholder="Search foods (e.g., ribeye, chicken breast)..." class="flex-1" />
         <button id="search-btn" class="btn btn-primary">Search</button>
       </div>
@@ -155,7 +157,7 @@ const today = nowEastern.toISOString().split('T')[0];
             <input type="text" id="meal-desc" placeholder="What did you eat?" class="w-full" />
           </div>
         </div>
-        <div class="grid grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm text-gray-500 mb-1">Calories</label>
             <input type="number" id="meal-calories" placeholder="0" class="w-full" />

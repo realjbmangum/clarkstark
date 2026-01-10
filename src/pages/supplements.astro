@@ -23,6 +23,7 @@ const today = nowEastern.toISOString().split('T')[0];
     <div class="card">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-semibold">Today's Stack</h3>
+        <label for="date-picker" class="sr-only">Select date</label>
         <input type="date" id="date-picker" value={today} class="rounded-xl text-sm" />
       </div>
       <div id="today-checklist" class="space-y-3">
