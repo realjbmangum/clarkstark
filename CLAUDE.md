@@ -180,6 +180,56 @@ npx wrangler pages deploy dist
 - Created seed-supplements.sql with AM/PM supplement stack
 - Improved workout save error messaging for D1 binding issues
 
+### Jan 28, 2026 - Motivation System
+**Problem:** App tracks workouts but doesn't create motivation. User losing momentum.
+
+**Solution:** Added "Daily Spark" motivation system with 4 core features:
+
+1. **Streak System**
+   - Flame icon + "Day X" in header on ALL pages
+   - Hard reset if a day is missed (tough love)
+   - Tracks current_streak and longest_streak in DB
+
+2. **Daily Spark Page** (`/spark` - new homepage)
+   - Streak hero (big flame + day count)
+   - Today's workout with quick start
+   - Scripture of the day (matched to workout type)
+   - Spotify playlist button (one-tap music)
+   - Weekly challenge with progress bar
+
+3. **Scripture Integration**
+   - Curated verses by category (strength, discipline, endurance, rest, perseverance)
+   - Maps workout types to appropriate categories
+   - Fetches NLT from api.bible if BIBLE_API_KEY is set
+   - Falls back to curated verses (currently NIV-style)
+
+4. **Spotify Integration**
+   - Playlists mapped to each workout type
+   - One-tap to open in Spotify
+
+5. **Weekly Challenges**
+   - Rotates weekly (4 workouts, 5 workouts, protein days, water days, weekdays)
+   - Progress calculated from existing logged data
+
+**Files Changed:**
+- `schema.sql` - Added streak, playlists, verse_cache tables
+- `src/data/verses.ts` - NEW: Curated scripture library
+- `src/data/playlists.ts` - NEW: Spotify playlist config
+- `src/pages/api/streak.ts` - NEW: Streak CRUD
+- `src/pages/api/verse.ts` - NEW: Bible API integration
+- `src/pages/api/challenge.ts` - NEW: Weekly challenge logic
+- `src/pages/spark.astro` - NEW: Daily Spark homepage
+- `src/pages/index.astro` - Redirects to /spark
+- `src/pages/workout.astro` - Updates streak on save
+- `src/layouts/Layout.astro` - Added streak to header, simplified nav
+
+**To Deploy:**
+1. Apply schema changes: `npx wrangler d1 execute clark-stark-workout --file=schema.sql`
+2. (Optional) Add BIBLE_API_KEY to Cloudflare Pages environment for NLT translation
+3. Deploy: `npm run build && npx wrangler pages deploy dist`
+
+**PRD:** `tasks/prd-motivation-system.md`
+
 ## Migration from Google Sheets
 
 This app replaces the previous Google Sheets + Apps Script version. Benefits:

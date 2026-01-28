@@ -1,0 +1,58 @@
+# ClarkStark Progress
+
+## Codebase Patterns
+
+- Astro SSR with Cloudflare adapter
+- D1 database accessed via `locals.runtime.env.DB`
+- Eastern timezone for all date calculations
+- Tailwind CSS with burnt orange (#cc5500) brand color
+- API routes return JSON with `{ success: true }` or `{ error: 'message' }`
+
+---
+
+## Session - Jan 28, 2026
+
+**Completed:**
+- Created PRD for Motivation System (`tasks/prd-motivation-system.md`)
+- Built streak tracking system (DB + API + header display)
+- Built Daily Spark page as new homepage
+- Added scripture integration with workout-matched verses
+- Added Spotify playlist integration per workout type
+- Added weekly challenges with auto-progress tracking
+- Simplified navigation (removed recipes, supplements, goals from main nav)
+
+**Files Created:**
+- `src/data/verses.ts` - 30+ curated fitness scriptures by category
+- `src/data/playlists.ts` - Spotify playlist config per workout type
+- `src/pages/api/streak.ts` - Streak CRUD with tough love reset
+- `src/pages/api/verse.ts` - Bible API + fallback logic
+- `src/pages/api/challenge.ts` - Weekly challenge with progress
+- `src/pages/spark.astro` - New Daily Spark homepage
+- `tasks/prd-motivation-system.md` - Full PRD
+
+**Files Modified:**
+- `schema.sql` - Added streak, playlists, verse_cache tables
+- `src/pages/index.astro` - Now redirects to /spark
+- `src/pages/workout.astro` - Updates streak on workout save
+- `src/layouts/Layout.astro` - Added streak to header, simplified nav
+- `CLAUDE.md` - Updated session history
+
+**Decisions:**
+- `/spark` is new homepage (index redirects)
+- Hard reset on missed streak days (tough love)
+- New Living Translation preferred (requires BIBLE_API_KEY)
+- Weekly challenges only (no daily micro-challenges)
+- Spotify playlists are public curated ones (can customize later)
+
+**Next Steps:**
+- [ ] Deploy and test on Cloudflare
+- [ ] Get api.bible API key for NLT translation
+- [ ] Customize Spotify playlists with personal favorites
+- [ ] (Future) Add post-workout journaling
+- [ ] (Future) Add evening accountability check-in
+- [ ] (Future) Add workout variety/shuffle
+
+**Gotchas:**
+- NLT Bible requires API key from https://scripture.api.bible/
+- Schema changes need `npx wrangler d1 execute` to apply
+- Streak resets silently if you miss a day - by design

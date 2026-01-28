@@ -308,6 +308,16 @@ const typeColors: Record<string, string> = {
       const result = await res.json();
 
       if (res.ok && result.success) {
+        // Update streak
+        try {
+          await fetch('/api/streak', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: today })
+          });
+        } catch (e) {
+          console.error('Failed to update streak:', e);
+        }
         alert('Workout saved!');
         window.location.href = '/';
       } else {

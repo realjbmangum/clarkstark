@@ -7,13 +7,10 @@ interface Props {
 const { title, activeNav = '' } = Astro.props;
 
 const navItems = [
-  { href: '/', label: 'Dashboard', id: 'dashboard' },
+  { href: '/', label: 'Spark', id: 'spark' },
   { href: '/workout', label: 'Workout', id: 'workout' },
   { href: '/nutrition', label: 'Nutrition', id: 'nutrition' },
-  { href: '/recipes', label: 'Recipes', id: 'recipes' },
   { href: '/metrics', label: 'Metrics', id: 'metrics' },
-  { href: '/supplements', label: 'Supplements', id: 'supplements' },
-  { href: '/goals', label: 'Goals', id: 'goals' },
   { href: '/schedule', label: 'Schedule', id: 'schedule' },
 ];
 ---
@@ -35,10 +32,17 @@ const navItems = [
     <div class="max-w-6xl mx-auto px-4 py-6">
       <!-- Header -->
       <header class="flex items-center justify-between mb-8 relative">
-        <a href="/" class="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
-          <span class="text-2xl">💪</span>
-          <span class="text-xl font-bold">ClarkStark</span>
-        </a>
+        <div class="flex items-center gap-4">
+          <a href="/" class="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
+            <span class="text-2xl">💪</span>
+            <span class="text-xl font-bold">ClarkStark</span>
+          </a>
+          <!-- Streak Counter -->
+          <div id="header-streak" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+            <span class="text-base">🔥</span>
+            <span id="streak-count">-</span>
+          </div>
+        </div>
 
         <!-- Desktop Navigation -->
         <nav class="hidden md:flex items-center gap-1">
@@ -93,6 +97,23 @@ const navItems = [
         ClarkStark &copy; 2026 - Best Shape at 50
       </footer>
     </div>
+
+    <!-- Streak Loader Script -->
+    <script>
+      async function loadStreak() {
+        try {
+          const res = await fetch('/api/streak');
+          const data = await res.json();
+          const streakEl = document.getElementById('streak-count');
+          if (streakEl) {
+            streakEl.textContent = `Day ${data.current_streak || 0}`;
+          }
+        } catch (err) {
+          console.error('Failed to load streak:', err);
+        }
+      }
+      loadStreak();
+    </script>
 
     <!-- Mobile Menu Script -->
     <script>

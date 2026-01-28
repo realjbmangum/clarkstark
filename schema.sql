@@ -185,10 +185,41 @@ CREATE INDEX IF NOT EXISTS idx_meals_date ON meals(date);
 CREATE INDEX IF NOT EXISTS idx_water_log_date ON water_log(date);
 CREATE INDEX IF NOT EXISTS idx_daily_checklist_date ON daily_checklist(date);
 
+-- Streak tracking
+CREATE TABLE IF NOT EXISTS streak (
+  id INTEGER PRIMARY KEY CHECK (id = 1), -- single row
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  last_workout_date TEXT,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Initialize streak row
+INSERT OR IGNORE INTO streak (id, current_streak, longest_streak) VALUES (1, 0, 0);
+
+-- Spotify playlists per workout type
+CREATE TABLE IF NOT EXISTS playlists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_type TEXT NOT NULL UNIQUE,
+  spotify_url TEXT,
+  name TEXT,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Verse cache (daily)
+CREATE TABLE IF NOT EXISTS verse_cache (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TEXT NOT NULL UNIQUE,
+  reference TEXT NOT NULL,
+  text TEXT NOT NULL,
+  category TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
 -- Insert default settings
 INSERT OR IGNORE INTO settings (key, value) VALUES
   ('protein_target', '150'),
   ('water_target_liters', '3'),
   ('sleep_target_hours', '7'),
   ('height_inches', '70'),
-  ('timezone', 'America/Chicago');
+  ('timezone', 'America/New_York');
