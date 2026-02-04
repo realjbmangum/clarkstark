@@ -78,9 +78,8 @@ const playlist = getRandomPlaylist();
       </div>
     </div>
 
-    <!-- Spotify Button - Random Playlist Each Time -->
-    {!isRestDay && !isSunday && (
-      <div class="space-y-2">
+    <!-- Spotify Button - Random Playlist Every Day -->
+    <div class="space-y-2">
         <a
           href={playlist.spotifyUrl}
           target="_blank"
@@ -105,7 +104,6 @@ const playlist = getRandomPlaylist();
           1 of {PLAYLIST_COUNT} playlists • Refresh for different music
         </p>
       </div>
-    )}
 
     <!-- Start Workout CTA -->
     {isSunday ? (
