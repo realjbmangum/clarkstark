@@ -5,8 +5,64 @@
 - Astro SSR with Cloudflare adapter
 - D1 database accessed via `locals.runtime.env.DB`
 - Eastern timezone for all date calculations
-- Tailwind CSS with burnt orange (#cc5500) brand color
+- Dark mode by default with CSS variables (--brand-orange, --bg-card, etc.)
+- Orbitron font for headings, Inter for body text
+- ApexCharts for data visualization
 - API routes return JSON with `{ success: true }` or `{ error: 'message' }`
+
+---
+
+## Session - Feb 3, 2026
+
+**Completed:**
+- Complete high-tech UI overhaul with dark mode + glassmorphism
+- Added ApexCharts for metrics visualization
+- Created 54 badass workout playlists (user-curated, not Spotify official)
+- Built new 3-day workout plan (Bench & Curls, Gun Show, Cold Plunge)
+- Added Sunday meal prep page with checklist
+- New 2-week calendar dashboard with glowing workout day cells
+- Progress rings with animated SVG fills
+- Animated counters using requestAnimationFrame
+- Dark mode toggle in header with localStorage persistence
+- Fixed meal-prep and spark pages for dark mode compatibility
+- Added Orbitron font for sci-fi/tech headings
+- Replaced confusing radial Goal Progress chart with horizontal range bars
+
+**Files Created:**
+- `src/data/mealplan.ts` - Meal prep data (targets, tasks, shopping list)
+- `src/pages/meal-prep.astro` - Sunday meal prep page
+
+**Files Modified:**
+- `src/styles/global.css` - Complete rewrite with dark theme, glassmorphism, glows
+- `src/layouts/Layout.astro` - Dark mode toggle, Orbitron font, added Daily Spark to nav
+- `src/pages/index.astro` - New 2-week calendar dashboard with progress rings
+- `src/pages/metrics.astro` - ApexCharts (weight trend, goal bars, radar chart)
+- `src/pages/spark.astro` - Dark mode styling, playlist shows every day
+- `src/pages/nutrition.astro` - Dark mode updates
+- `src/pages/schedule.astro` - Dark mode updates
+- `src/data/playlists.ts` - 54 user-curated badass playlists
+- `src/data/workouts.ts` - Added 3 new workouts + updated schedule
+- `package.json` - Added apexcharts dependency
+
+**Key Decisions:**
+- Dark mode is default (light mode via toggle)
+- Orbitron font for headers gives sci-fi/tech vibe
+- Spotify playlists show every day (not just workout days)
+- Horizontal range bars for Goal Progress (clearer than radial)
+- CSS variables for all colors to support theming
+
+**Commits:**
+- `bbcc078` feat: High-tech UI overhaul with ApexCharts and dark mode
+- `5b9603d` fix: Show Spotify playlist on all days
+- `0548029` feat: Badass UI polish - Orbitron font, dark mode fixes
+- `eb4f99e` fix: Replace confusing radial chart with horizontal range bars
+
+**Next Steps:**
+- [ ] Test full flow on production after Cloudflare deploy
+- [ ] Consider adding ApexCharts to other pages (nutrition trends?)
+- [ ] Add workout completion animations/confetti
+- [ ] (Future) Post-workout journaling
+- [ ] (Future) Evening accountability check-in
 
 ---
 
@@ -44,10 +100,16 @@
 - Weekly challenges only (no daily micro-challenges)
 - Spotify playlists are public curated ones (can customize later)
 
+**Deployed & Live:**
+- [x] Deploy and test on Cloudflare
+- [x] Get api.bible API key for NLT translation (added to Cloudflare env)
+- [x] Schema applied to remote D1
+- [x] Committed and pushed: `011f343`
+
 **Next Steps:**
-- [ ] Deploy and test on Cloudflare
-- [ ] Get api.bible API key for NLT translation
 - [ ] Customize Spotify playlists with personal favorites
+- [ ] Test full flow: open app → see spark → start workout → save → streak increments
+- [ ] Verify NLT verses are loading (vs curated fallback)
 - [ ] (Future) Add post-workout journaling
 - [ ] (Future) Add evening accountability check-in
 - [ ] (Future) Add workout variety/shuffle
