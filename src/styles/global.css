@@ -85,6 +85,20 @@ body::before {
   z-index: -1;
 }
 
+/* Badass Headings - Orbitron */
+h1, h2, h3, .font-display {
+  font-family: 'Orbitron', 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  text-transform: uppercase;
+}
+
+.gradient-text {
+  font-family: 'Orbitron', 'Inter', sans-serif;
+}
+
 [data-theme="light"] body::before {
   background-image: none;
 }

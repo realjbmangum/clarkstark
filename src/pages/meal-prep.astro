@@ -29,61 +29,71 @@ const shoppingByCategory = {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold">Sunday Meal Prep</h1>
-        <p class="text-gray-500">~1 hour to set up the week</p>
+        <h1 class="text-2xl md:text-3xl font-bold gradient-text">Meal Prep</h1>
+        <p class="text-[var(--text-muted)] text-sm mt-1">Sunday ritual • ~1 hour to dominate the week</p>
       </div>
-      <a href="/" class="btn btn-secondary text-sm">
-        ← Calendar
+      <a href="/" class="px-4 py-2 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--brand-orange)] transition-all text-sm">
+        ← Dashboard
       </a>
     </div>
 
     <!-- Daily Targets Reminder -->
-    <div class="card bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-      <h3 class="font-semibold mb-3">Daily Targets</h3>
+    <div class="card card-glow p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+        <span class="text-xl">🎯</span>
+        Daily Targets
+      </h3>
       <div class="grid grid-cols-3 gap-4 text-center">
-        <div>
-          <div class="text-2xl font-bold text-green-600">{DAILY_TARGETS.protein}g</div>
-          <div class="text-xs text-gray-500">Protein</div>
+        <div class="p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)]">
+          <div class="text-3xl font-black text-[var(--brand-green)]">{DAILY_TARGETS.protein}g</div>
+          <div class="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-wide">Protein</div>
         </div>
-        <div>
-          <div class="text-2xl font-bold text-orange-600">{DAILY_TARGETS.caloriesMin}-{DAILY_TARGETS.caloriesMax}</div>
-          <div class="text-xs text-gray-500">Calories</div>
+        <div class="p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)]">
+          <div class="text-2xl font-black gradient-text">{DAILY_TARGETS.caloriesMin}-{DAILY_TARGETS.caloriesMax}</div>
+          <div class="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-wide">Calories</div>
         </div>
-        <div>
-          <div class="text-2xl font-bold text-blue-600">{DAILY_TARGETS.waterGallons} gal</div>
-          <div class="text-xs text-gray-500">Water</div>
+        <div class="p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)]">
+          <div class="text-3xl font-black text-[var(--brand-cyan)]">{DAILY_TARGETS.waterGallons} gal</div>
+          <div class="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-wide">Water</div>
         </div>
       </div>
     </div>
 
     <!-- Water Bottle Reminder -->
-    <div class="card bg-blue-50 border-blue-200">
+    <div class="card p-5 border-[var(--brand-cyan)] border-opacity-50" style="border-color: rgba(0, 212, 255, 0.3);">
       <div class="flex items-center gap-4">
         <div class="text-4xl">💧</div>
-        <div>
-          <h3 class="font-semibold text-blue-800">Water Bottle Check</h3>
-          <p class="text-sm text-blue-600">Fill your 1-gallon jug for tomorrow. Keep it visible!</p>
+        <div class="flex-1">
+          <h3 class="font-semibold text-[var(--brand-cyan)]">Water Jug Check</h3>
+          <p class="text-sm text-[var(--text-secondary)]">Fill your 1-gallon jug for tomorrow. Keep it visible!</p>
         </div>
-        <label class="ml-auto flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" id="water-check" class="w-5 h-5 rounded text-blue-600" />
-          <span class="sr-only">Water filled</span>
+        <label class="relative flex items-center cursor-pointer">
+          <input type="checkbox" id="water-check" class="sr-only peer" />
+          <div class="w-14 h-8 rounded-full bg-[var(--bg-glass)] border border-[var(--border-color)] peer-checked:bg-[var(--brand-cyan)] peer-checked:border-[var(--brand-cyan)] transition-all"></div>
+          <div class="absolute left-1 top-1 w-6 h-6 rounded-full bg-[var(--text-muted)] peer-checked:bg-white peer-checked:translate-x-6 transition-all"></div>
         </label>
       </div>
     </div>
 
     <!-- Prep Checklist -->
-    <div class="card">
-      <h2 class="font-semibold text-lg mb-4">Prep Checklist</h2>
+    <div class="card p-5">
+      <h2 class="font-semibold text-lg text-[var(--text-primary)] mb-5 flex items-center gap-2">
+        <span class="text-xl">📋</span>
+        Prep Checklist
+      </h2>
 
       <!-- Protein -->
       <div class="mb-6">
-        <h3 class="text-sm font-medium text-orange-600 uppercase tracking-wide mb-3">Protein (Main Priority)</h3>
+        <h3 class="text-sm font-bold text-[var(--brand-orange)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--brand-orange)] glow-orange"></span>
+          Protein (Priority One)
+        </h3>
         <div class="space-y-2">
           {tasksByCategory.protein.map(task => (
-            <label class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl cursor-pointer hover:bg-orange-100 transition-colors">
-              <input type="checkbox" class="prep-task w-5 h-5 rounded text-orange-600" data-task={task.id} />
-              <span class="flex-1">{task.task}</span>
-              <span class="text-xs text-gray-400">{task.estimatedTime}</span>
+            <label class="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] cursor-pointer hover:border-[var(--brand-orange)] transition-all group">
+              <input type="checkbox" class="prep-task checkbox-custom" data-task={task.id} />
+              <span class="flex-1 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{task.task}</span>
+              <span class="text-xs text-[var(--text-muted)] px-2 py-1 rounded-lg bg-[var(--bg-card)]">{task.estimatedTime}</span>
             </label>
           ))}
         </div>
@@ -91,13 +101,16 @@ const shoppingByCategory = {
 
       <!-- Sides -->
       <div class="mb-6">
-        <h3 class="text-sm font-medium text-green-600 uppercase tracking-wide mb-3">Sides</h3>
+        <h3 class="text-sm font-bold text-[var(--brand-green)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--brand-green)]"></span>
+          Sides
+        </h3>
         <div class="space-y-2">
           {tasksByCategory.sides.map(task => (
-            <label class="flex items-center gap-3 p-3 bg-green-50 rounded-xl cursor-pointer hover:bg-green-100 transition-colors">
-              <input type="checkbox" class="prep-task w-5 h-5 rounded text-green-600" data-task={task.id} />
-              <span class="flex-1">{task.task}</span>
-              <span class="text-xs text-gray-400">{task.estimatedTime}</span>
+            <label class="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] cursor-pointer hover:border-[var(--brand-green)] transition-all group">
+              <input type="checkbox" class="prep-task checkbox-custom checkbox-green" data-task={task.id} />
+              <span class="flex-1 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{task.task}</span>
+              <span class="text-xs text-[var(--text-muted)] px-2 py-1 rounded-lg bg-[var(--bg-card)]">{task.estimatedTime}</span>
             </label>
           ))}
         </div>
@@ -105,13 +118,16 @@ const shoppingByCategory = {
 
       <!-- Snacks -->
       <div class="mb-6">
-        <h3 class="text-sm font-medium text-purple-600 uppercase tracking-wide mb-3">Snacks</h3>
+        <h3 class="text-sm font-bold text-[var(--brand-purple)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--brand-purple)]"></span>
+          Snacks
+        </h3>
         <div class="space-y-2">
           {tasksByCategory.snacks.map(task => (
-            <label class="flex items-center gap-3 p-3 bg-purple-50 rounded-xl cursor-pointer hover:bg-purple-100 transition-colors">
-              <input type="checkbox" class="prep-task w-5 h-5 rounded text-purple-600" data-task={task.id} />
-              <span class="flex-1">{task.task}</span>
-              <span class="text-xs text-gray-400">{task.estimatedTime}</span>
+            <label class="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] cursor-pointer hover:border-[var(--brand-purple)] transition-all group">
+              <input type="checkbox" class="prep-task checkbox-custom checkbox-purple" data-task={task.id} />
+              <span class="flex-1 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{task.task}</span>
+              <span class="text-xs text-[var(--text-muted)] px-2 py-1 rounded-lg bg-[var(--bg-card)]">{task.estimatedTime}</span>
             </label>
           ))}
         </div>
@@ -119,13 +135,16 @@ const shoppingByCategory = {
 
       <!-- General Prep -->
       <div>
-        <h3 class="text-sm font-medium text-gray-600 uppercase tracking-wide mb-3">Setup</h3>
+        <h3 class="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[var(--text-secondary)]"></span>
+          Setup
+        </h3>
         <div class="space-y-2">
           {tasksByCategory.prep.map(task => (
-            <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-              <input type="checkbox" class="prep-task w-5 h-5 rounded text-gray-600" data-task={task.id} />
-              <span class="flex-1">{task.task}</span>
-              <span class="text-xs text-gray-400">{task.estimatedTime}</span>
+            <label class="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] cursor-pointer hover:border-[var(--text-secondary)] transition-all group">
+              <input type="checkbox" class="prep-task checkbox-custom checkbox-gray" data-task={task.id} />
+              <span class="flex-1 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{task.task}</span>
+              <span class="text-xs text-[var(--text-muted)] px-2 py-1 rounded-lg bg-[var(--bg-card)]">{task.estimatedTime}</span>
             </label>
           ))}
         </div>
@@ -133,19 +152,22 @@ const shoppingByCategory = {
     </div>
 
     <!-- Meal Containers -->
-    <div class="card">
-      <h2 class="font-semibold text-lg mb-4">Pack Containers</h2>
+    <div class="card p-5">
+      <h2 class="font-semibold text-lg text-[var(--text-primary)] mb-4 flex items-center gap-2">
+        <span class="text-xl">📦</span>
+        Pack Containers
+      </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         {MEAL_CONTAINERS.map(container => (
-          <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-            <input type="checkbox" class="container-task w-5 h-5 rounded text-brand-orange" data-container={container.id} />
+          <label class="flex items-center gap-3 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] cursor-pointer hover:border-[var(--brand-orange)] transition-all group">
+            <input type="checkbox" class="container-task checkbox-custom" data-container={container.id} />
             <div class="flex-1">
-              <div class="font-medium">{container.name}</div>
-              <div class="text-sm text-gray-500">{container.contents}</div>
+              <div class="font-medium text-[var(--text-primary)]">{container.name}</div>
+              <div class="text-sm text-[var(--text-muted)]">{container.contents}</div>
             </div>
-            <div class="text-right text-sm">
-              <div class="text-green-600 font-medium">{container.protein}g</div>
-              <div class="text-gray-400">{container.calories} cal</div>
+            <div class="text-right">
+              <div class="text-[var(--brand-green)] font-bold">{container.protein}g</div>
+              <div class="text-xs text-[var(--text-muted)]">{container.calories} cal</div>
             </div>
           </label>
         ))}
@@ -153,10 +175,13 @@ const shoppingByCategory = {
     </div>
 
     <!-- Shopping List -->
-    <div class="card">
+    <div class="card p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-lg">Shopping List</h2>
-        <button id="copy-list" class="btn btn-ghost text-sm">
+        <h2 class="font-semibold text-lg text-[var(--text-primary)] flex items-center gap-2">
+          <span class="text-xl">🛒</span>
+          Shopping List
+        </h2>
+        <button id="copy-list" class="px-4 py-2 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--brand-cyan)] hover:border-[var(--brand-cyan)] transition-all text-sm">
           Copy List
         </button>
       </div>
@@ -164,12 +189,12 @@ const shoppingByCategory = {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Protein -->
         <div>
-          <h3 class="text-sm font-medium text-orange-600 uppercase tracking-wide mb-2">Protein</h3>
-          <ul class="space-y-1">
+          <h3 class="text-sm font-bold text-[var(--brand-orange)] uppercase tracking-wider mb-3">Protein</h3>
+          <ul class="space-y-2">
             {shoppingByCategory.protein.map(item => (
-              <li class="flex justify-between text-sm">
-                <span>{item.item}</span>
-                <span class="text-gray-400">{item.amount}</span>
+              <li class="flex justify-between text-sm p-2 rounded-lg hover:bg-[var(--bg-glass)] transition-colors">
+                <span class="text-[var(--text-secondary)]">{item.item}</span>
+                <span class="text-[var(--text-muted)]">{item.amount}</span>
               </li>
             ))}
           </ul>
@@ -177,12 +202,12 @@ const shoppingByCategory = {
 
         <!-- Produce -->
         <div>
-          <h3 class="text-sm font-medium text-green-600 uppercase tracking-wide mb-2">Produce</h3>
-          <ul class="space-y-1">
+          <h3 class="text-sm font-bold text-[var(--brand-green)] uppercase tracking-wider mb-3">Produce</h3>
+          <ul class="space-y-2">
             {shoppingByCategory.produce.map(item => (
-              <li class="flex justify-between text-sm">
-                <span>{item.item}</span>
-                <span class="text-gray-400">{item.amount}</span>
+              <li class="flex justify-between text-sm p-2 rounded-lg hover:bg-[var(--bg-glass)] transition-colors">
+                <span class="text-[var(--text-secondary)]">{item.item}</span>
+                <span class="text-[var(--text-muted)]">{item.amount}</span>
               </li>
             ))}
           </ul>
@@ -190,12 +215,12 @@ const shoppingByCategory = {
 
         <!-- Snacks -->
         <div>
-          <h3 class="text-sm font-medium text-purple-600 uppercase tracking-wide mb-2">Snacks</h3>
-          <ul class="space-y-1">
+          <h3 class="text-sm font-bold text-[var(--brand-purple)] uppercase tracking-wider mb-3">Snacks</h3>
+          <ul class="space-y-2">
             {shoppingByCategory.snacks.map(item => (
-              <li class="flex justify-between text-sm">
-                <span>{item.item}</span>
-                <span class="text-gray-400">{item.amount}</span>
+              <li class="flex justify-between text-sm p-2 rounded-lg hover:bg-[var(--bg-glass)] transition-colors">
+                <span class="text-[var(--text-secondary)]">{item.item}</span>
+                <span class="text-[var(--text-muted)]">{item.amount}</span>
               </li>
             ))}
           </ul>
@@ -203,12 +228,12 @@ const shoppingByCategory = {
 
         <!-- Pantry -->
         <div>
-          <h3 class="text-sm font-medium text-gray-600 uppercase tracking-wide mb-2">Pantry</h3>
-          <ul class="space-y-1">
+          <h3 class="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">Pantry</h3>
+          <ul class="space-y-2">
             {shoppingByCategory.pantry.map(item => (
-              <li class="flex justify-between text-sm">
-                <span>{item.item}</span>
-                <span class="text-gray-400">{item.amount}</span>
+              <li class="flex justify-between text-sm p-2 rounded-lg hover:bg-[var(--bg-glass)] transition-colors">
+                <span class="text-[var(--text-secondary)]">{item.item}</span>
+                <span class="text-[var(--text-muted)]">{item.amount}</span>
               </li>
             ))}
           </ul>
@@ -217,34 +242,87 @@ const shoppingByCategory = {
     </div>
 
     <!-- Sample Day -->
-    <div class="card bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-      <h2 class="font-semibold text-lg mb-3">Sample Day: {proteinExample.totalProtein}g Protein</h2>
-      <ul class="space-y-2 mb-4">
+    <div class="card card-glow p-5">
+      <h2 class="font-semibold text-lg text-[var(--text-primary)] mb-4 flex items-center gap-2">
+        <span class="text-xl">💪</span>
+        Sample Day: <span class="text-[var(--brand-green)]">{proteinExample.totalProtein}g Protein</span>
+      </h2>
+      <ul class="space-y-3 mb-4">
         {proteinExample.meals.map(meal => (
-          <li class="flex items-center gap-2 text-sm">
-            <span class="text-green-500">✓</span>
-            <span>{meal}</span>
+          <li class="flex items-center gap-3 text-sm">
+            <span class="w-6 h-6 rounded-full bg-[var(--brand-green)] bg-opacity-20 flex items-center justify-center text-[var(--brand-green)]">✓</span>
+            <span class="text-[var(--text-secondary)]">{meal}</span>
           </li>
         ))}
       </ul>
-      <div class="text-sm text-gray-600">
-        Total: <span class="font-semibold text-green-600">{proteinExample.totalProtein}g protein</span> • {proteinExample.totalCalories} calories
+      <div class="p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)]">
+        <span class="text-[var(--text-muted)]">Daily Total:</span>
+        <span class="font-bold text-[var(--brand-green)] ml-2">{proteinExample.totalProtein}g protein</span>
+        <span class="text-[var(--text-muted)] mx-2">•</span>
+        <span class="text-[var(--text-secondary)]">{proteinExample.totalCalories} calories</span>
       </div>
     </div>
 
     <!-- Progress -->
-    <div class="card">
+    <div class="card p-5">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold">Prep Progress</h3>
-        <span id="progress-text" class="text-sm text-gray-500">0 / {PREP_TASKS.length + MEAL_CONTAINERS.length + 1} tasks</span>
+        <h3 class="font-semibold text-[var(--text-primary)]">Prep Progress</h3>
+        <span id="progress-text" class="text-sm text-[var(--text-muted)]">0 / {PREP_TASKS.length + MEAL_CONTAINERS.length + 1} tasks</span>
       </div>
-      <div class="progress-bar">
-        <div id="progress-fill" class="progress-fill bg-gradient-to-r from-green-400 to-green-500" style="width: 0%"></div>
+      <div class="h-3 rounded-full bg-[var(--bg-glass)] border border-[var(--border-color)] overflow-hidden">
+        <div id="progress-fill" class="h-full rounded-full bg-gradient-to-r from-[var(--brand-orange)] to-[var(--brand-green)] transition-all duration-500" style="width: 0%"></div>
       </div>
     </div>
 
   </div>
 </Layout>
+
+<style>
+  .checkbox-custom {
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--bg-glass);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .checkbox-custom:checked {
+    background: var(--brand-orange);
+    border-color: var(--brand-orange);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+  }
+
+  .checkbox-custom.checkbox-green:checked {
+    background: var(--brand-green);
+    border-color: var(--brand-green);
+  }
+
+  .checkbox-custom.checkbox-purple:checked {
+    background: var(--brand-purple);
+    border-color: var(--brand-purple);
+  }
+
+  .checkbox-custom.checkbox-gray:checked {
+    background: var(--text-secondary);
+    border-color: var(--text-secondary);
+  }
+
+  .checkbox-custom:hover {
+    border-color: var(--brand-orange);
+  }
+
+  .checkbox-green:hover {
+    border-color: var(--brand-green) !important;
+  }
+
+  .checkbox-purple:hover {
+    border-color: var(--brand-purple) !important;
+  }
+</style>
 
 <script define:vars={{ totalTasks: PREP_TASKS.length + MEAL_CONTAINERS.length + 1 }}>
   // Load saved state from localStorage
@@ -311,14 +389,14 @@ const shoppingByCategory = {
   // Copy shopping list
   document.getElementById('copy-list')?.addEventListener('click', () => {
     const lists = document.querySelectorAll('.card ul');
-    let text = 'Shopping List:\n\n';
+    let text = '🛒 SHOPPING LIST\n\n';
 
     lists.forEach(list => {
       const heading = list.previousElementSibling;
       if (heading?.tagName === 'H3') {
-        text += heading.textContent + ':\n';
+        text += heading.textContent.toUpperCase() + ':\n';
         list.querySelectorAll('li').forEach(li => {
-          text += '  - ' + li.textContent.trim().replace(/\s+/g, ' ') + '\n';
+          text += '  • ' + li.textContent.trim().replace(/\s+/g, ' ') + '\n';
         });
         text += '\n';
       }
@@ -327,8 +405,14 @@ const shoppingByCategory = {
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('copy-list');
       const original = btn.textContent;
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = original, 2000);
+      btn.textContent = '✓ Copied!';
+      btn.style.color = 'var(--brand-green)';
+      btn.style.borderColor = 'var(--brand-green)';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
     });
   });
 
