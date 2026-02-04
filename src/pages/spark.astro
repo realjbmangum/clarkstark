@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { WORKOUTS } from '../data/workouts';
-import { getPlaylistForWorkoutType } from '../data/playlists';
+import { WORKOUTS, SCHEDULE } from '../data/workouts';
+import { getRandomPlaylist, PLAYLIST_COUNT } from '../data/playlists';
 
 export const prerender = false;
 
@@ -17,23 +17,24 @@ const today = nowEastern.toLocaleDateString('en-US', {
 
 const dayOfWeek = nowEastern.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
-const schedule: Record<string, { id: string; name: string; type: string }> = {
-  monday: { id: 'upper_strength', name: 'Upper Strength - Push', type: 'strength' },
-  tuesday: { id: 'lower_power', name: 'Lower Power - Explosive', type: 'power' },
-  wednesday: { id: 'upper_hypertrophy', name: 'Upper Hypertrophy - Pull', type: 'hypertrophy' },
-  thursday: { id: 'lower_hypertrophy', name: 'Lower Hypertrophy - Volume', type: 'hypertrophy' },
-  friday: { id: 'speed_arms', name: 'Speed & Arms Friday', type: 'speed' },
-  saturday: { id: 'active_recovery', name: 'Active Recovery', type: 'conditioning' },
-  sunday: { id: 'rest_day', name: 'Rest Day', type: 'rest' },
-};
+// Use the SCHEDULE from workouts.ts (new 3-day plan)
+const workoutId = SCHEDULE[dayOfWeek] || 'rest_day';
+const workout = WORKOUTS[workoutId];
 
-const todaysWorkout = schedule[dayOfWeek] || schedule.monday;
-const playlist = getPlaylistForWorkoutType(todaysWorkout.id);
-const isRestDay = todaysWorkout.id === 'rest_day';
+const isRestDay = workoutId === 'rest_day';
+const isSunday = dayOfWeek === 'sunday';
+
+// Get a random playlist (different each page load)
+const playlist = getRandomPlaylist();
 ---
 
 <Layout title="Daily Spark" activeNav="spark">
   <div class="max-w-lg mx-auto space-y-6">
+
+    <!-- Back to Calendar -->
+    <a href="/" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand-orange transition-colors">
+      ← Back to Calendar
+    </a>
 
     <!-- Streak Hero -->
     <div class="text-center py-8">
@@ -49,11 +50,16 @@ const isRestDay = todaysWorkout.id === 'rest_day';
     <!-- Date & Workout -->
     <div class="card text-center">
       <div class="text-sm text-gray-500 uppercase tracking-wide">{today}</div>
-      <h1 class="text-2xl font-bold mt-2">{todaysWorkout.name}</h1>
-      {!isRestDay && (
-        <div class="mt-1 text-sm text-gray-500">
-          {WORKOUTS[todaysWorkout.id]?.duration || '45-60 min'}
-        </div>
+      {isSunday ? (
+        <h1 class="text-2xl font-bold mt-2">Meal Prep Day</h1>
+        <div class="mt-1 text-sm text-gray-500">~1 hour</div>
+      ) : (
+        <>
+          <h1 class="text-2xl font-bold mt-2">{workout?.name || 'Rest Day'}</h1>
+          {!isRestDay && workout && (
+            <div class="mt-1 text-sm text-gray-500">{workout.duration}</div>
+          )}
+        </>
       )}
     </div>
 
@@ -72,25 +78,46 @@ const isRestDay = todaysWorkout.id === 'rest_day';
       </div>
     </div>
 
-    <!-- Spotify Button -->
-    {playlist && !isRestDay && (
-      <a
-        href={playlist.spotifyUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center justify-center gap-3 w-full py-4 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-2xl font-semibold transition-colors shadow-lg"
-      >
-        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-        </svg>
-        <span>Open {playlist.name} Playlist</span>
-      </a>
+    <!-- Spotify Button - Random Playlist Each Time -->
+    {!isRestDay && !isSunday && (
+      <div class="space-y-2">
+        <a
+          href={playlist.spotifyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center justify-between w-full py-4 px-5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-2xl font-semibold transition-colors shadow-lg"
+        >
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+            <div class="text-left">
+              <div class="text-sm opacity-80">Today's Playlist</div>
+              <div class="font-bold">{playlist.name}</div>
+            </div>
+          </div>
+          <div class="text-right text-sm opacity-80">
+            <div>{playlist.genre}</div>
+            <div class="text-xs">{playlist.vibe}</div>
+          </div>
+        </a>
+        <p class="text-center text-xs text-gray-400">
+          1 of {PLAYLIST_COUNT} playlists • Refresh for different music
+        </p>
+      </div>
     )}
 
     <!-- Start Workout CTA -->
-    {!isRestDay ? (
+    {isSunday ? (
       <a
-        href={`/workout?id=${todaysWorkout.id}`}
+        href="/meal-prep"
+        class="block w-full py-5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-center rounded-2xl font-bold text-lg shadow-lg transition-all hover:shadow-xl active:scale-[0.98]"
+      >
+        Start Meal Prep →
+      </a>
+    ) : !isRestDay ? (
+      <a
+        href={`/workout?id=${workoutId}`}
         class="block w-full py-5 bg-gradient-to-r from-brand-orange to-orange-500 hover:from-orange-600 hover:to-orange-500 text-white text-center rounded-2xl font-bold text-lg shadow-lg transition-all hover:shadow-xl active:scale-[0.98]"
       >
         Start Workout →
@@ -100,8 +127,8 @@ const isRestDay = todaysWorkout.id === 'rest_day';
         <div class="text-4xl mb-3">😴</div>
         <h3 class="font-semibold text-lg">Rest Day</h3>
         <p class="text-gray-500 mt-1">Recovery is part of the process. Take it easy today.</p>
-        <a href="/schedule" class="text-brand-orange hover:underline text-sm mt-4 inline-block">
-          View Schedule →
+        <a href="/" class="text-brand-orange hover:underline text-sm mt-4 inline-block">
+          View Calendar →
         </a>
       </div>
     )}
@@ -133,16 +160,16 @@ const isRestDay = todaysWorkout.id === 'rest_day';
         <div class="text-2xl mb-1">📏</div>
         <div class="text-xs text-gray-600">Metrics</div>
       </a>
-      <a href="/schedule" class="card text-center py-4 hover:shadow-md transition-shadow">
-        <div class="text-2xl mb-1">📅</div>
-        <div class="text-xs text-gray-600">Schedule</div>
+      <a href="/meal-prep" class="card text-center py-4 hover:shadow-md transition-shadow">
+        <div class="text-2xl mb-1">🥗</div>
+        <div class="text-xs text-gray-600">Meal Prep</div>
       </a>
     </div>
 
   </div>
 </Layout>
 
-<script define:vars={{ workoutType: todaysWorkout.id }}>
+<script define:vars={{ workoutType: workoutId }}>
   // Load streak
   async function loadStreak() {
     try {
@@ -157,7 +184,7 @@ const isRestDay = todaysWorkout.id === 'rest_day';
     }
   }
 
-  // Load verse
+  // Load verse from API
   async function loadVerse() {
     try {
       const res = await fetch(`/api/verse?workout_type=${workoutType}`);

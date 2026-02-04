@@ -9,6 +9,9 @@ const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satu
 
 const todayIdx = (new Date().getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
 
+// All workouts for the picker (excluding rest_day)
+const allWorkouts = Object.values(WORKOUTS).filter(w => w.id !== 'rest_day');
+
 const typeColors: Record<string, string> = {
   strength: 'border-l-red-500 bg-red-50',
   power: 'border-l-yellow-500 bg-yellow-50',
@@ -56,6 +59,33 @@ const typeColors: Record<string, string> = {
           </a>
         );
       })}
+    </div>
+
+    <!-- All Available Workouts -->
+    <div class="card border-2 border-dashed border-gray-200">
+      <div class="mb-4">
+        <h3 class="font-semibold text-lg">All Workouts</h3>
+        <p class="text-gray-500 text-sm">Choose any workout regardless of schedule</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {allWorkouts.map((workout) => (
+          <a
+            href={`/workout?id=${workout.id}`}
+            class={`block p-4 rounded-lg border-l-4 hover:shadow-md transition-shadow ${typeColors[workout.type] || typeColors.rest}`}
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-medium">{workout.name}</h4>
+                <p class="text-sm text-gray-500">{workout.focus}</p>
+              </div>
+              <div class="text-right">
+                <div class="text-sm text-gray-500">{workout.duration}</div>
+                <div class="text-xs text-gray-400 capitalize">{workout.type}</div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
 
     <!-- Training Type Legend -->

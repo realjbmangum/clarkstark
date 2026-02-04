@@ -7,11 +7,11 @@ interface Props {
 const { title, activeNav = '' } = Astro.props;
 
 const navItems = [
-  { href: '/', label: 'Spark', id: 'spark' },
+  { href: '/', label: 'Dashboard', id: 'calendar' },
   { href: '/workout', label: 'Workout', id: 'workout' },
+  { href: '/meal-prep', label: 'Meal Prep', id: 'meal-prep' },
   { href: '/nutrition', label: 'Nutrition', id: 'nutrition' },
   { href: '/metrics', label: 'Metrics', id: 'metrics' },
-  { href: '/schedule', label: 'Schedule', id: 'schedule' },
 ];
 ---
 
@@ -20,66 +20,84 @@ const navItems = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ClarkStark - Personal Fitness Tracker" />
+    <meta name="description" content="ClarkStark - High-Tech Fitness Tracker" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <title>{title} | ClarkStark</title>
+    <script is:inline>
+      // Check for saved theme preference or default to dark
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    </script>
   </head>
   <body class="min-h-screen">
-    <!-- Floating decorations -->
-    <div class="decoration top-20 right-10 w-32 h-32 bg-brand-peach rounded-full blur-3xl"></div>
-    <div class="decoration bottom-20 left-10 w-40 h-40 bg-brand-pink rounded-full blur-3xl"></div>
-
     <div class="max-w-6xl mx-auto px-4 py-6">
       <!-- Header -->
       <header class="flex items-center justify-between mb-8 relative">
         <div class="flex items-center gap-4">
-          <a href="/" class="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2">
-            <span class="text-2xl">💪</span>
-            <span class="text-xl font-bold">ClarkStark</span>
+          <a href="/" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg glow-orange">
+              <span class="text-xl">💪</span>
+            </div>
+            <span class="text-xl font-bold gradient-text">ClarkStark</span>
           </a>
           <!-- Streak Counter -->
-          <div id="header-streak" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+          <div id="header-streak" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold card-glow">
             <span class="text-base">🔥</span>
-            <span id="streak-count">-</span>
+            <span id="streak-count" class="gradient-text">-</span>
           </div>
         </div>
 
-        <!-- Desktop Navigation -->
-        <nav class="hidden md:flex items-center gap-1">
-          {navItems.map(item => (
-            <a
-              href={item.href}
-              class={`nav-link ${activeNav === item.id ? 'active' : ''}`}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        <div class="flex items-center gap-4">
+          <!-- Desktop Navigation -->
+          <nav class="hidden md:flex items-center gap-1">
+            {navItems.map(item => (
+              <a
+                href={item.href}
+                class={`nav-link ${activeNav === item.id ? 'active' : ''}`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
 
-        <!-- Mobile Hamburger Button -->
-        <button
-          id="mobile-menu-btn"
-          class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
-          aria-label="Toggle menu"
-          aria-expanded="false"
-        >
-          <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+          <!-- Theme Toggle -->
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-label="Toggle dark mode"
+            title="Toggle theme"
+          >
+            <span class="sr-only">Toggle theme</span>
+          </button>
+
+          <!-- Mobile Hamburger Button -->
+          <button
+            id="mobile-menu-btn"
+            class="md:hidden p-2 rounded-lg hover:bg-[var(--bg-glass)] transition-colors"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+          >
+            <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         <!-- Mobile Navigation Menu -->
         <nav
           id="mobile-menu"
-          class="hidden absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-gray-100 py-2 z-50"
+          class="hidden absolute top-full right-0 mt-2 w-56 card py-2 z-50"
         >
           {navItems.map(item => (
             <a
               href={item.href}
-              class={`block px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-inset ${activeNav === item.id ? 'bg-brand-orange text-white hover:bg-brand-orange hover:text-white' : ''}`}
+              class={`block px-4 py-3 transition-colors ${activeNav === item.id ? 'gradient-text font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
             >
               {item.label}
             </a>
@@ -93,8 +111,13 @@ const navItems = [
       </main>
 
       <!-- Footer -->
-      <footer class="mt-12 py-6 text-center text-sm text-gray-400">
-        ClarkStark &copy; 2026 - Best Shape at 50
+      <footer class="mt-12 py-6 text-center text-sm" style="color: var(--text-muted)">
+        <div class="flex items-center justify-center gap-2">
+          <span class="gradient-text font-semibold">ClarkStark</span>
+          <span>&copy; 2026</span>
+          <span class="text-[var(--text-muted)]">•</span>
+          <span>Best Shape at 50</span>
+        </div>
       </footer>
     </div>
 
@@ -113,6 +136,18 @@ const navItems = [
         }
       }
       loadStreak();
+    </script>
+
+    <!-- Theme Toggle Script -->
+    <script>
+      const themeToggle = document.getElementById('theme-toggle');
+
+      themeToggle?.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
     </script>
 
     <!-- Mobile Menu Script -->
@@ -145,13 +180,11 @@ const navItems = [
         }
       }
 
-      // Toggle on button click
       menuBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleMenu();
       });
 
-      // Close when clicking outside
       document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
         if (!mobileMenu?.contains(target) && !menuBtn?.contains(target)) {
@@ -159,7 +192,6 @@ const navItems = [
         }
       });
 
-      // Close on Escape key
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           closeMenu();

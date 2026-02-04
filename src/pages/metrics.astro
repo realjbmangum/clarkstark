@@ -7,195 +7,580 @@ export const prerender = false;
 const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
 const nowEastern = new Date(easternDate);
 const today = nowEastern.toISOString().split('T')[0];
+
+// Goals
+const goals = {
+  weight: { start: 250, target: 210, label: 'Weight' },
+  waist: { start: 36, target: 32, label: 'Waist' },
+  arms: { start: 14, target: 16, label: 'Arms' }
+};
 ---
 
 <Layout title="Body Metrics" activeNav="metrics">
   <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold">Body Metrics</h1>
-      <p class="text-gray-500">Track your transformation</p>
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold gradient-text">Body Metrics</h1>
+        <p class="text-[var(--text-muted)] text-sm mt-1">Track your transformation journey</p>
+      </div>
+      <div class="text-right">
+        <div class="text-xs text-[var(--text-muted)]">Target</div>
+        <div class="text-lg font-bold text-[var(--brand-green)]">210 lbs</div>
+      </div>
     </div>
 
-    <!-- Current Stats -->
+    <!-- Current Stats Grid -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="stat-card">
-        <div class="stat-value" id="current-weight">-</div>
-        <div class="stat-label">Weight (lbs)</div>
+      <div class="card card-glow text-center p-5">
+        <div class="text-3xl font-black gradient-text" id="current-weight">--</div>
+        <div class="text-xs text-[var(--text-muted)] mt-1">Weight (lbs)</div>
+        <div class="text-xs mt-2" id="weight-change">
+          <span class="text-[var(--brand-green)]">--</span>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value" id="current-waist">-</div>
-        <div class="stat-label">Waist (in)</div>
+      <div class="card card-glow text-center p-5">
+        <div class="text-3xl font-black text-[var(--brand-cyan)]" id="current-waist">--</div>
+        <div class="text-xs text-[var(--text-muted)] mt-1">Waist (in)</div>
+        <div class="text-xs mt-2" id="waist-change">
+          <span class="text-[var(--brand-green)]">--</span>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value" id="current-bodyfat">-</div>
-        <div class="stat-label">Body Fat %</div>
+      <div class="card card-glow text-center p-5">
+        <div class="text-3xl font-black text-[var(--brand-green)]" id="current-bodyfat">--</div>
+        <div class="text-xs text-[var(--text-muted)] mt-1">Body Fat %</div>
+        <div class="text-xs mt-2" id="bodyfat-change">
+          <span class="text-[var(--text-muted)]">--</span>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value" id="current-arms">-</div>
-        <div class="stat-label">Arms (in)</div>
+      <div class="card card-glow text-center p-5">
+        <div class="text-3xl font-black text-[var(--brand-purple)]" id="current-arms">--</div>
+        <div class="text-xs text-[var(--text-muted)] mt-1">Arms (in)</div>
+        <div class="text-xs mt-2" id="arms-change">
+          <span class="text-[var(--brand-green)]">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <!-- Weight Trend Chart -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-[var(--text-primary)]">Weight Trend</h3>
+          <select id="weight-range" class="text-xs bg-[var(--bg-glass)] border border-[var(--border-color)] rounded-lg px-2 py-1 text-[var(--text-secondary)]">
+            <option value="30">30 Days</option>
+            <option value="90">90 Days</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+        <div id="weight-chart" class="h-64"></div>
+      </div>
+
+      <!-- Body Composition Radial -->
+      <div class="card p-5">
+        <h3 class="font-semibold text-[var(--text-primary)] mb-4">Goal Progress</h3>
+        <div id="composition-chart" class="h-64"></div>
       </div>
     </div>
 
     <!-- Log New Metrics -->
-    <div class="card">
-      <h3 class="font-semibold mb-4">Log Measurements</h3>
+    <div class="card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+        <span class="text-lg">📏</span>
+        Log Measurements
+      </h3>
       <form id="metrics-form" class="space-y-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Date</label>
-            <input type="date" id="metric-date" value={today} class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Date</label>
+            <input type="date" id="metric-date" value={today} class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Weight (lbs)</label>
-            <input type="number" step="0.1" id="metric-weight" placeholder="250" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Weight (lbs)</label>
+            <input type="number" step="0.1" id="metric-weight" placeholder="250" class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Waist (in)</label>
-            <input type="number" step="0.25" id="metric-waist" placeholder="34" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Waist (in)</label>
+            <input type="number" step="0.25" id="metric-waist" placeholder="34" class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Neck (in)</label>
-            <input type="number" step="0.25" id="metric-neck" placeholder="16" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Neck (in)</label>
+            <input type="number" step="0.25" id="metric-neck" placeholder="16" class="input-field" />
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Chest (in)</label>
-            <input type="number" step="0.25" id="metric-chest" placeholder="42" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Chest (in)</label>
+            <input type="number" step="0.25" id="metric-chest" placeholder="42" class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Arms (in)</label>
-            <input type="number" step="0.25" id="metric-arms" placeholder="15" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Arms (in)</label>
+            <input type="number" step="0.25" id="metric-arms" placeholder="15" class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Thighs (in)</label>
-            <input type="number" step="0.25" id="metric-thighs" placeholder="24" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Thighs (in)</label>
+            <input type="number" step="0.25" id="metric-thighs" placeholder="24" class="input-field" />
           </div>
           <div>
-            <label class="block text-sm text-gray-500 mb-1">Notes</label>
-            <input type="text" id="metric-notes" placeholder="Optional" class="w-full" />
+            <label class="block text-xs text-[var(--text-muted)] mb-1">Notes</label>
+            <input type="text" id="metric-notes" placeholder="Optional" class="input-field" />
           </div>
         </div>
-        <div class="flex gap-4">
-          <button type="submit" class="btn btn-primary">Save Measurements</button>
-          <div id="bodyfat-result" class="flex items-center text-sm text-gray-500"></div>
+        <div class="flex items-center gap-4">
+          <button type="submit" class="btn-primary">
+            Save Measurements
+          </button>
+          <div id="bodyfat-result" class="text-sm text-[var(--brand-green)]"></div>
         </div>
       </form>
     </div>
 
-    <!-- Progress Chart Placeholder -->
-    <div class="card">
-      <h3 class="font-semibold mb-4">Progress Over Time</h3>
+    <!-- Measurements Radar Chart -->
+    <div class="card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4">Measurements Comparison</h3>
+      <div class="grid md:grid-cols-2 gap-6 items-center">
+        <div id="radar-chart" class="h-72"></div>
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-[var(--brand-orange)]"></div>
+            <span class="text-sm text-[var(--text-secondary)]">Current Measurements</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-[var(--brand-cyan)] opacity-50"></div>
+            <span class="text-sm text-[var(--text-secondary)]">Goal Measurements</span>
+          </div>
+          <div class="mt-4 p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-color)]">
+            <div class="text-xs text-[var(--text-muted)] mb-2">Progress Summary</div>
+            <div class="text-sm text-[var(--text-secondary)]" id="progress-summary">
+              Loading progress data...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4">Measurement History</h3>
       <div id="history-table" class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr>
-              <th>Date</th>
-              <th>Weight</th>
-              <th>Waist</th>
-              <th>Body Fat</th>
-              <th>Arms</th>
+            <tr class="text-left text-[var(--text-muted)] border-b border-[var(--border-color)]">
+              <th class="pb-3 font-medium">Date</th>
+              <th class="pb-3 font-medium">Weight</th>
+              <th class="pb-3 font-medium">Waist</th>
+              <th class="pb-3 font-medium">Body Fat</th>
+              <th class="pb-3 font-medium">Arms</th>
+              <th class="pb-3 font-medium">Chest</th>
             </tr>
           </thead>
-          <tbody id="history-body">
-            <tr><td colspan="5" class="text-center text-gray-400 py-4">Loading...</td></tr>
+          <tbody id="history-body" class="text-[var(--text-secondary)]">
+            <tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Goals -->
-    <div class="card">
-      <h3 class="font-semibold mb-4">Transformation Goals</h3>
-      <div class="grid md:grid-cols-3 gap-6">
-        <div>
-          <div class="flex justify-between text-sm mb-1">
-            <span>Weight</span>
-            <span id="goal-weight-label">- / 210 lbs</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="goal-weight-progress" style="width: 0%"></div>
-          </div>
-        </div>
-        <div>
-          <div class="flex justify-between text-sm mb-1">
-            <span>Waist</span>
-            <span id="goal-waist-label">- / 32 in</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill bg-green-500" id="goal-waist-progress" style="width: 0%"></div>
-          </div>
-        </div>
-        <div>
-          <div class="flex justify-between text-sm mb-1">
-            <span>Arms</span>
-            <span id="goal-arms-label">- / 16 in</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill bg-blue-500" id="goal-arms-progress" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </Layout>
 
-<script>
+<!-- ApexCharts -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script define:vars={{ goals }}>
+  // Theme-aware colors
+  function getChartColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    return {
+      text: isDark ? '#94a3b8' : '#64748b',
+      grid: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+      background: 'transparent',
+      orange: '#ff6b35',
+      orangeLight: 'rgba(255, 107, 53, 0.2)',
+      cyan: '#00d4ff',
+      cyanLight: 'rgba(0, 212, 255, 0.2)',
+      green: '#00ff88',
+      greenLight: 'rgba(0, 255, 136, 0.2)',
+      purple: '#a855f7'
+    };
+  }
+
+  let weightChart, compositionChart, radarChart;
+  let metricsData = [];
+
+  // Animated counter
+  function animateValue(element, target, suffix = '') {
+    const duration = 1000;
+    const startTime = performance.now();
+    const startValue = 0;
+
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = startValue + (target - startValue) * easeOut;
+
+      if (typeof target === 'number' && !isNaN(target)) {
+        element.textContent = (Math.round(current * 10) / 10) + suffix;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // Initialize Weight Trend Chart
+  function initWeightChart(data) {
+    const colors = getChartColors();
+    const chartData = data.filter(m => m.weight).map(m => ({
+      x: new Date(m.date).getTime(),
+      y: m.weight
+    })).reverse();
+
+    const options = {
+      series: [{
+        name: 'Weight',
+        data: chartData
+      }],
+      chart: {
+        type: 'area',
+        height: 256,
+        background: colors.background,
+        toolbar: { show: false },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800
+        }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3,
+        colors: [colors.orange]
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.5,
+          opacityTo: 0.1,
+          stops: [0, 100],
+          colorStops: [{
+            offset: 0,
+            color: colors.orange,
+            opacity: 0.4
+          }, {
+            offset: 100,
+            color: colors.orange,
+            opacity: 0.05
+          }]
+        }
+      },
+      grid: {
+        borderColor: colors.grid,
+        strokeDashArray: 3
+      },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          style: { colors: colors.text, fontSize: '11px' }
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: colors.text, fontSize: '11px' },
+          formatter: (val) => val + ' lbs'
+        }
+      },
+      tooltip: {
+        theme: 'dark',
+        x: { format: 'MMM dd, yyyy' },
+        y: { formatter: (val) => val + ' lbs' }
+      },
+      annotations: {
+        yaxis: [{
+          y: 210,
+          borderColor: colors.green,
+          borderWidth: 2,
+          strokeDashArray: 5,
+          label: {
+            text: 'Goal: 210 lbs',
+            style: {
+              color: '#fff',
+              background: colors.green,
+              fontSize: '10px',
+              padding: { left: 5, right: 5, top: 2, bottom: 2 }
+            }
+          }
+        }]
+      },
+      markers: {
+        size: 0,
+        hover: { size: 6 }
+      }
+    };
+
+    if (weightChart) weightChart.destroy();
+    weightChart = new ApexCharts(document.getElementById('weight-chart'), options);
+    weightChart.render();
+  }
+
+  // Initialize Composition/Goals Radial Chart
+  function initCompositionChart(latest) {
+    const colors = getChartColors();
+
+    // Calculate progress percentages
+    const weightProgress = latest?.weight
+      ? Math.min(100, Math.max(0, ((goals.weight.start - latest.weight) / (goals.weight.start - goals.weight.target)) * 100))
+      : 0;
+    const waistProgress = latest?.waist
+      ? Math.min(100, Math.max(0, ((goals.waist.start - latest.waist) / (goals.waist.start - goals.waist.target)) * 100))
+      : 0;
+    const armsProgress = latest?.arms
+      ? Math.min(100, Math.max(0, ((latest.arms - goals.arms.start) / (goals.arms.target - goals.arms.start)) * 100))
+      : 0;
+
+    const options = {
+      series: [Math.round(weightProgress), Math.round(waistProgress), Math.round(armsProgress)],
+      chart: {
+        type: 'radialBar',
+        height: 256,
+        background: 'transparent'
+      },
+      plotOptions: {
+        radialBar: {
+          offsetY: 0,
+          startAngle: 0,
+          endAngle: 270,
+          hollow: {
+            margin: 5,
+            size: '30%',
+            background: 'transparent'
+          },
+          track: {
+            background: colors.grid,
+            strokeWidth: '100%'
+          },
+          dataLabels: {
+            name: {
+              show: true,
+              fontSize: '12px',
+              color: colors.text
+            },
+            value: {
+              show: true,
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: colors.text,
+              formatter: (val) => val + '%'
+            },
+            total: {
+              show: true,
+              label: 'Overall',
+              fontSize: '12px',
+              color: colors.text,
+              formatter: function(w) {
+                const avg = w.globals.seriesTotals.reduce((a, b) => a + b, 0) / w.globals.series.length;
+                return Math.round(avg) + '%';
+              }
+            }
+          }
+        }
+      },
+      colors: [colors.orange, colors.cyan, colors.purple],
+      labels: ['Weight', 'Waist', 'Arms'],
+      stroke: {
+        lineCap: 'round'
+      },
+      legend: {
+        show: true,
+        position: 'bottom',
+        fontSize: '11px',
+        labels: { colors: colors.text },
+        markers: { width: 10, height: 10, radius: 5 }
+      }
+    };
+
+    if (compositionChart) compositionChart.destroy();
+    compositionChart = new ApexCharts(document.getElementById('composition-chart'), options);
+    compositionChart.render();
+  }
+
+  // Initialize Radar Chart
+  function initRadarChart(latest) {
+    const colors = getChartColors();
+
+    const currentData = [
+      latest?.weight || 0,
+      latest?.waist || 0,
+      latest?.chest || 0,
+      latest?.arms || 0,
+      latest?.thighs || 0
+    ];
+
+    const goalData = [210, 32, 44, 16, 26];
+
+    // Normalize to 0-100 scale for radar
+    const normalize = (val, max) => Math.min(100, (val / max) * 100);
+    const maxVals = [300, 50, 60, 25, 35];
+
+    const options = {
+      series: [{
+        name: 'Current',
+        data: currentData.map((v, i) => normalize(v, maxVals[i]))
+      }, {
+        name: 'Goal',
+        data: goalData.map((v, i) => normalize(v, maxVals[i]))
+      }],
+      chart: {
+        type: 'radar',
+        height: 288,
+        background: 'transparent',
+        toolbar: { show: false }
+      },
+      colors: [colors.orange, colors.cyan],
+      stroke: {
+        width: 2,
+        colors: [colors.orange, colors.cyan]
+      },
+      fill: {
+        opacity: [0.3, 0.1]
+      },
+      markers: {
+        size: 4,
+        colors: [colors.orange, colors.cyan],
+        strokeColors: [colors.orange, colors.cyan],
+        strokeWidth: 2
+      },
+      xaxis: {
+        categories: ['Weight', 'Waist', 'Chest', 'Arms', 'Thighs'],
+        labels: {
+          style: {
+            colors: [colors.text, colors.text, colors.text, colors.text, colors.text],
+            fontSize: '11px'
+          }
+        }
+      },
+      yaxis: {
+        show: false
+      },
+      legend: {
+        show: false
+      },
+      plotOptions: {
+        radar: {
+          polygons: {
+            strokeColors: colors.grid,
+            connectorColors: colors.grid,
+            fill: {
+              colors: ['transparent']
+            }
+          }
+        }
+      }
+    };
+
+    if (radarChart) radarChart.destroy();
+    radarChart = new ApexCharts(document.getElementById('radar-chart'), options);
+    radarChart.render();
+  }
+
+  // Load metrics data
   async function loadMetrics() {
     try {
-      const res = await fetch('/api/metrics?limit=30');
+      const res = await fetch('/api/metrics?limit=90');
       const data = await res.json();
-      const metrics = data.metrics || [];
+      metricsData = data.metrics || [];
 
-      if (metrics.length > 0) {
-        const latest = metrics[0];
-        document.getElementById('current-weight')!.textContent = latest.weight ? latest.weight + '' : '-';
-        document.getElementById('current-waist')!.textContent = latest.waist ? latest.waist + '"' : '-';
-        document.getElementById('current-bodyfat')!.textContent = latest.body_fat ? latest.body_fat + '%' : '-';
-        document.getElementById('current-arms')!.textContent = latest.arms ? latest.arms + '"' : '-';
+      if (metricsData.length > 0) {
+        const latest = metricsData[0];
+        const previous = metricsData.length > 1 ? metricsData[1] : null;
 
-        // Update goals (assuming targets)
-        const weightTarget = 210;
-        const waistTarget = 32;
-        const armsTarget = 16;
-
+        // Update current stats with animation
         if (latest.weight) {
-          document.getElementById('goal-weight-label')!.textContent = `${latest.weight} / ${weightTarget} lbs`;
-          // Progress is inverse for weight (going down)
-          const startWeight = 250;
-          const pct = ((startWeight - latest.weight) / (startWeight - weightTarget)) * 100;
-          document.getElementById('goal-weight-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+          animateValue(document.getElementById('current-weight'), latest.weight);
+          if (previous?.weight) {
+            const diff = latest.weight - previous.weight;
+            const el = document.getElementById('weight-change');
+            el.innerHTML = diff <= 0
+              ? `<span class="text-[var(--brand-green)]">${diff.toFixed(1)} lbs</span>`
+              : `<span class="text-red-400">+${diff.toFixed(1)} lbs</span>`;
+          }
         }
 
         if (latest.waist) {
-          document.getElementById('goal-waist-label')!.textContent = `${latest.waist} / ${waistTarget} in`;
-          const startWaist = 36;
-          const pct = ((startWaist - latest.waist) / (startWaist - waistTarget)) * 100;
-          document.getElementById('goal-waist-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+          animateValue(document.getElementById('current-waist'), latest.waist, '"');
+          if (previous?.waist) {
+            const diff = latest.waist - previous.waist;
+            const el = document.getElementById('waist-change');
+            el.innerHTML = diff <= 0
+              ? `<span class="text-[var(--brand-green)]">${diff.toFixed(1)}"</span>`
+              : `<span class="text-red-400">+${diff.toFixed(1)}"</span>`;
+          }
+        }
+
+        if (latest.body_fat) {
+          animateValue(document.getElementById('current-bodyfat'), latest.body_fat, '%');
+          if (previous?.body_fat) {
+            const diff = latest.body_fat - previous.body_fat;
+            const el = document.getElementById('bodyfat-change');
+            el.innerHTML = diff <= 0
+              ? `<span class="text-[var(--brand-green)]">${diff.toFixed(1)}%</span>`
+              : `<span class="text-red-400">+${diff.toFixed(1)}%</span>`;
+          }
         }
 
         if (latest.arms) {
-          document.getElementById('goal-arms-label')!.textContent = `${latest.arms} / ${armsTarget} in`;
-          const startArms = 14;
-          const pct = ((latest.arms - startArms) / (armsTarget - startArms)) * 100;
-          document.getElementById('goal-arms-progress')!.style.width = Math.min(100, Math.max(0, pct)) + '%';
+          animateValue(document.getElementById('current-arms'), latest.arms, '"');
+          if (previous?.arms) {
+            const diff = latest.arms - previous.arms;
+            const el = document.getElementById('arms-change');
+            el.innerHTML = diff >= 0
+              ? `<span class="text-[var(--brand-green)]">+${diff.toFixed(1)}"</span>`
+              : `<span class="text-red-400">${diff.toFixed(1)}"</span>`;
+          }
         }
+
+        // Initialize charts
+        initWeightChart(metricsData);
+        initCompositionChart(latest);
+        initRadarChart(latest);
+
+        // Update progress summary
+        const startWeight = 250;
+        const totalLost = latest.weight ? startWeight - latest.weight : 0;
+        const remaining = latest.weight ? latest.weight - 210 : 40;
+        document.getElementById('progress-summary').innerHTML = `
+          <div class="space-y-1">
+            <div><span class="text-[var(--brand-green)] font-semibold">${totalLost.toFixed(1)} lbs</span> lost from starting weight</div>
+            <div><span class="text-[var(--brand-orange)] font-semibold">${remaining.toFixed(1)} lbs</span> to reach goal</div>
+          </div>
+        `;
       }
 
       // Populate history table
-      const tbody = document.getElementById('history-body')!;
-      if (metrics.length > 0) {
-        tbody.innerHTML = metrics.slice(0, 10).map((m: any) => `
-          <tr>
-            <td>${m.date}</td>
-            <td>${m.weight || '-'}</td>
-            <td>${m.waist || '-'}</td>
-            <td>${m.body_fat ? m.body_fat + '%' : '-'}</td>
-            <td>${m.arms || '-'}</td>
+      const tbody = document.getElementById('history-body');
+      if (metricsData.length > 0) {
+        tbody.innerHTML = metricsData.slice(0, 15).map((m) => `
+          <tr class="border-b border-[var(--border-color)] hover:bg-[var(--bg-glass)] transition-colors">
+            <td class="py-3">${new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
+            <td class="py-3 font-medium">${m.weight || '-'}</td>
+            <td class="py-3">${m.waist ? m.waist + '"' : '-'}</td>
+            <td class="py-3">${m.body_fat ? m.body_fat + '%' : '-'}</td>
+            <td class="py-3">${m.arms ? m.arms + '"' : '-'}</td>
+            <td class="py-3">${m.chest ? m.chest + '"' : '-'}</td>
           </tr>
         `).join('');
       } else {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-4">No measurements yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-[var(--text-muted)]">No measurements yet. Log your first entry above!</td></tr>';
       }
 
     } catch (err) {
@@ -208,14 +593,14 @@ const today = nowEastern.toISOString().split('T')[0];
     e.preventDefault();
 
     const data = {
-      date: (document.getElementById('metric-date') as HTMLInputElement).value,
-      weight: parseFloat((document.getElementById('metric-weight') as HTMLInputElement).value) || null,
-      waist: parseFloat((document.getElementById('metric-waist') as HTMLInputElement).value) || null,
-      neck: parseFloat((document.getElementById('metric-neck') as HTMLInputElement).value) || null,
-      chest: parseFloat((document.getElementById('metric-chest') as HTMLInputElement).value) || null,
-      arms: parseFloat((document.getElementById('metric-arms') as HTMLInputElement).value) || null,
-      thighs: parseFloat((document.getElementById('metric-thighs') as HTMLInputElement).value) || null,
-      notes: (document.getElementById('metric-notes') as HTMLInputElement).value || null
+      date: document.getElementById('metric-date').value,
+      weight: parseFloat(document.getElementById('metric-weight').value) || null,
+      waist: parseFloat(document.getElementById('metric-waist').value) || null,
+      neck: parseFloat(document.getElementById('metric-neck').value) || null,
+      chest: parseFloat(document.getElementById('metric-chest').value) || null,
+      arms: parseFloat(document.getElementById('metric-arms').value) || null,
+      thighs: parseFloat(document.getElementById('metric-thighs').value) || null,
+      notes: document.getElementById('metric-notes').value || null
     };
 
     try {
@@ -229,13 +614,13 @@ const today = nowEastern.toISOString().split('T')[0];
 
       if (res.ok) {
         if (result.body_fat) {
-          document.getElementById('bodyfat-result')!.textContent = `Calculated body fat: ${result.body_fat}%`;
+          document.getElementById('bodyfat-result').textContent = `Calculated body fat: ${result.body_fat}%`;
         }
         loadMetrics();
 
         // Clear form except date
         ['weight', 'waist', 'neck', 'chest', 'arms', 'thighs', 'notes'].forEach(field => {
-          (document.getElementById(`metric-${field}`) as HTMLInputElement).value = '';
+          document.getElementById(`metric-${field}`).value = '';
         });
       }
     } catch (err) {
@@ -243,5 +628,88 @@ const today = nowEastern.toISOString().split('T')[0];
     }
   });
 
+  // Range selector for weight chart
+  document.getElementById('weight-range')?.addEventListener('change', (e) => {
+    const range = e.target.value;
+    let filteredData = metricsData;
+
+    if (range !== 'all') {
+      const days = parseInt(range);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      filteredData = metricsData.filter(m => new Date(m.date) >= cutoff);
+    }
+
+    initWeightChart(filteredData);
+  });
+
+  // Listen for theme changes
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'data-theme' && metricsData.length > 0) {
+        const latest = metricsData[0];
+        initWeightChart(metricsData);
+        initCompositionChart(latest);
+        initRadarChart(latest);
+      }
+    });
+  });
+  observer.observe(document.documentElement, { attributes: true });
+
+  // Initialize
   loadMetrics();
 </script>
+
+<style>
+  .input-field {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--brand-orange);
+    box-shadow: 0 0 0 3px var(--brand-orange-glow);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+
+  .btn-primary {
+    padding: 0.75rem 1.5rem;
+    background: var(--gradient-orange);
+    color: white;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px var(--brand-orange-glow);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--brand-orange-glow);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* ApexCharts tooltip dark mode fix */
+  .apexcharts-tooltip {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .apexcharts-tooltip-title {
+    background: var(--bg-glass) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+</style>

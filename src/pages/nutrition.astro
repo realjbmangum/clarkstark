@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { DAILY_TARGETS, SAMPLE_DAILY_MEALS } from '../data/mealplan';
 
 export const prerender = false;
 
@@ -7,6 +8,9 @@ export const prerender = false;
 const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
 const nowEastern = new Date(easternDate);
 const today = nowEastern.toISOString().split('T')[0];
+
+const proteinTarget = DAILY_TARGETS.protein;
+const waterTarget = DAILY_TARGETS.waterGallons * 3.785; // Convert to liters for display
 ---
 
 <Layout title="Nutrition" activeNav="nutrition">
@@ -18,6 +22,29 @@ const today = nowEastern.toISOString().split('T')[0];
       </div>
       <label for="date-picker" class="sr-only">Select date</label>
       <input type="date" id="date-picker" value={today} class="rounded-xl" />
+    </div>
+
+    <!-- Daily Targets Banner -->
+    <div class="card bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">{DAILY_TARGETS.protein}g</div>
+            <div class="text-xs text-gray-500">Protein Goal</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-orange-600">{DAILY_TARGETS.caloriesMin}-{DAILY_TARGETS.caloriesMax}</div>
+            <div class="text-xs text-gray-500">Calories</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600">{DAILY_TARGETS.waterGallons} gal</div>
+            <div class="text-xs text-gray-500">Water</div>
+          </div>
+        </div>
+        <a href="/meal-prep" class="btn btn-ghost text-sm">
+          Meal Prep →
+        </a>
+      </div>
     </div>
 
     <!-- Daily Summary -->
@@ -44,29 +71,35 @@ const today = nowEastern.toISOString().split('T')[0];
     <div class="card">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-semibold">Protein Target</h3>
-        <span class="text-sm text-gray-500" id="protein-target-label">0 / 150g</span>
+        <span class="text-sm text-gray-500" id="protein-target-label">0 / {DAILY_TARGETS.protein}g</span>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="protein-progress" style="width: 0%"></div>
+      <div class="progress-bar h-3">
+        <div class="progress-fill bg-gradient-to-r from-green-400 to-green-500" id="protein-progress" style="width: 0%"></div>
       </div>
     </div>
 
-    <!-- Quick Add Water -->
-    <div class="card">
-      <h3 class="font-semibold mb-4">Water Intake</h3>
+    <!-- Quick Add Water - Prominent -->
+    <div class="card bg-blue-50 border-blue-200">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">💧</span>
+        <div>
+          <h3 class="font-semibold text-blue-800">Water Intake</h3>
+          <p class="text-xs text-blue-600">Goal: 1 gallon (~3.8L) daily</p>
+        </div>
+      </div>
       <div class="flex items-center gap-4 mb-3">
         <div class="flex-1">
-          <div class="progress-bar">
-            <div class="progress-fill" id="water-progress" style="width: 0%"></div>
+          <div class="progress-bar h-4">
+            <div class="progress-fill bg-gradient-to-r from-blue-400 to-blue-500" id="water-progress" style="width: 0%"></div>
           </div>
         </div>
-        <span class="text-sm text-gray-500" id="water-label">0 / 3L</span>
+        <span class="text-lg font-bold text-blue-600" id="water-label">0 / 3.8L</span>
       </div>
       <div class="flex gap-2 flex-wrap">
-        <button class="water-btn btn btn-ghost text-sm" data-amount="0.25">+250ml</button>
-        <button class="water-btn btn btn-ghost text-sm" data-amount="0.5">+500ml</button>
-        <button class="water-btn btn btn-ghost text-sm" data-amount="0.75">+750ml</button>
-        <button class="water-btn btn btn-ghost text-sm" data-amount="1">+1L</button>
+        <button class="water-btn btn bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm" data-amount="0.25">+250ml</button>
+        <button class="water-btn btn bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm" data-amount="0.5">+500ml</button>
+        <button class="water-btn btn bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm" data-amount="0.75">+750ml</button>
+        <button class="water-btn btn bg-blue-200 hover:bg-blue-300 text-blue-800 text-sm font-semibold" data-amount="1">+1L</button>
       </div>
     </div>
 
@@ -207,7 +240,7 @@ const today = nowEastern.toISOString().split('T')[0];
       document.getElementById('total-fat')!.textContent = (nutrition.fat || 0) + 'g';
 
       // Protein progress
-      const proteinTarget = 150;
+      const proteinTarget = 200; // Updated target from mealplan.ts
       const proteinPct = Math.min(100, ((nutrition.protein || 0) / proteinTarget) * 100);
       document.getElementById('protein-progress')!.style.width = proteinPct + '%';
       document.getElementById('protein-target-label')!.textContent = `${nutrition.protein || 0} / ${proteinTarget}g`;
@@ -255,7 +288,7 @@ const today = nowEastern.toISOString().split('T')[0];
       const res = await fetch(`/api/water?date=${date}`);
       const data = await res.json();
       const waterTotal = data.total || 0;
-      const waterTarget = 3;
+      const waterTarget = 3.8; // 1 gallon in liters
       const waterPct = Math.min(100, (waterTotal / waterTarget) * 100);
       document.getElementById('water-progress')!.style.width = waterPct + '%';
       document.getElementById('water-label')!.textContent = `${waterTotal.toFixed(1)} / ${waterTarget}L`;

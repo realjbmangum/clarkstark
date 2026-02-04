@@ -194,17 +194,76 @@ export const WORKOUTS: Record<string, Workout> = {
     warmup: { cardio: 'None', mobility: ['Optional light stretching'] },
     exercises: [],
     core: []
+  },
+
+  // Custom 3-Day Plan
+  bench_curls: {
+    id: 'bench_curls',
+    name: 'Bench & Curls',
+    type: 'strength',
+    focus: 'Chest Press - Bicep Work - Band Finishers',
+    duration: '20 min',
+    warmup: {
+      cardio: 'Light rowing or arm circles (2 min)',
+      mobility: ['Arm circles (10 each)', 'Band pull-aparts (10)', 'Push-up stretch (5)']
+    },
+    exercises: [
+      { id: 'bench_press', name: 'Bench Press', sets: 4, reps: '8', tempo: '3-1-1', notes: 'Control the weight. Solid foundation.' },
+      { id: 'barbell_curl', name: 'Barbell Curls', sets: 4, reps: '10', tempo: '2-1-2', notes: 'Full range of motion. Squeeze at top.' },
+      { id: 'band_face_pull', name: 'Band Face Pulls', sets: 3, reps: '15', tempo: '2-1-2', notes: 'External rotate at top. Rear delt health.' },
+      { id: 'band_pushdown', name: 'Band Pushdowns', sets: 3, reps: '15', tempo: '2-1-2', notes: 'Lock out hard. Tricep finisher.' }
+    ],
+    core: []
+  },
+
+  gun_show: {
+    id: 'gun_show',
+    name: 'Gun Show',
+    type: 'hypertrophy',
+    focus: 'Arms Only - Biceps & Triceps - Pump Day',
+    duration: '20 min',
+    warmup: {
+      cardio: 'Light band curls and pushdowns (1 min each)',
+      mobility: ['Wrist circles (10 each)', 'Arm swings (10 each)']
+    },
+    exercises: [
+      { id: 'barbell_curl', name: 'Barbell Curls', sets: 4, reps: '10', tempo: '2-1-2', notes: 'Strict form. No swinging.' },
+      { id: 'close_grip_bench', name: 'Close-Grip Bench', sets: 4, reps: '10', tempo: '3-1-2', notes: 'Tricep mass builder.' },
+      { id: 'hammer_curl', name: 'Hammer Curls', sets: 3, reps: '12', tempo: '2-1-2', notes: 'Brachialis and forearms.' },
+      { id: 'band_pushdown', name: 'Band Pushdowns', sets: 3, reps: '20', tempo: '2-1-1', notes: 'High reps for the pump.' },
+      { id: 'band_curl_burnout', name: 'Band Curls Burnout', sets: 1, reps: '50', tempo: 'fast', notes: 'Non-stop. Chase the pump.' }
+    ],
+    core: []
+  },
+
+  cold_plunge_day: {
+    id: 'cold_plunge_day',
+    name: 'Cold Plunge Day',
+    type: 'conditioning',
+    focus: 'Recovery - Cold Exposure - Mental Toughness',
+    duration: '20 min',
+    warmup: {
+      cardio: 'None - start light',
+      mobility: ['Deep breathing (1 min)']
+    },
+    exercises: [
+      { id: 'light_row', name: 'Light Row', sets: 1, reps: '5 min', tempo: 'easy', notes: 'Zone 1 effort. Just moving.' },
+      { id: 'full_stretch', name: 'Full Body Stretch', sets: 1, reps: '5 min', tempo: 'hold', notes: 'Focus on tight areas.' },
+      { id: 'cold_plunge', name: 'Cold Plunge', sets: 1, reps: '3-5 min', tempo: 'hold', notes: 'Breathe slow. Control the mind.' },
+      { id: 'deep_breathing', name: 'Deep Breathing', sets: 1, reps: '5 min', tempo: 'slow', notes: 'Box breathing. 4-4-4-4.' }
+    ],
+    core: []
   }
 };
 
 export const SCHEDULE: Record<string, string> = {
-  monday: 'upper_strength',
-  tuesday: 'lower_power',
-  wednesday: 'upper_hypertrophy',
-  thursday: 'lower_hypertrophy',
-  friday: 'speed_arms',
-  saturday: 'active_recovery',
-  sunday: 'rest_day'
+  monday: 'bench_curls',
+  tuesday: 'rest_day',
+  wednesday: 'gun_show',
+  thursday: 'rest_day',
+  friday: 'cold_plunge_day',
+  saturday: 'rest_day',
+  sunday: 'rest_day'  // Meal Prep Day - handled separately
 };
 
 export function getWorkout(id: string): Workout | undefined {

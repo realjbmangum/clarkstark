@@ -1,5 +1,407 @@
 ---
-// Redirect to /spark - the new Daily Spark homepage
+import Layout from '../layouts/Layout.astro';
+import { WORKOUTS, SCHEDULE } from '../data/workouts';
+import { DAILY_TARGETS } from '../data/mealplan';
+
 export const prerender = false;
-return Astro.redirect('/spark');
+
+// Use Eastern timezone for all date calculations
+const easternDate = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+const nowEastern = new Date(easternDate);
+
+// Get current week's Monday
+function getMonday(d: Date): Date {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(date.setDate(diff));
+}
+
+const thisMonday = getMonday(nowEastern);
+const nextMonday = new Date(thisMonday);
+nextMonday.setDate(thisMonday.getDate() + 7);
+
+// Generate week data
+interface DayData {
+  date: Date;
+  dayName: string;
+  dayNum: number;
+  isToday: boolean;
+  workout: { id: string; name: string; type: string; duration: string } | null;
+  isMealPrep: boolean;
+  isRest: boolean;
+}
+
+function getWeekDays(monday: Date): DayData[] {
+  const days: DayData[] = [];
+  const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    const dayName = dayNames[i];
+    const workoutId = SCHEDULE[dayName];
+    const workout = WORKOUTS[workoutId];
+    const isToday = date.toDateString() === nowEastern.toDateString();
+    const isSunday = i === 6;
+
+    days.push({
+      date,
+      dayName: dayName.charAt(0).toUpperCase() + dayName.slice(1, 3),
+      dayNum: date.getDate(),
+      isToday,
+      workout: workout && workout.id !== 'rest_day' ? {
+        id: workout.id,
+        name: workout.name,
+        type: workout.type,
+        duration: workout.duration
+      } : null,
+      isMealPrep: isSunday,
+      isRest: !isSunday && (!workout || workout.id === 'rest_day')
+    });
+  }
+  return days;
+}
+
+const thisWeek = getWeekDays(thisMonday);
+const nextWeek = getWeekDays(nextMonday);
+
+const todayFormatted = nowEastern.toLocaleDateString('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Get today's workout
+const dayOfWeek = nowEastern.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+const todaysWorkoutId = SCHEDULE[dayOfWeek] || 'rest_day';
+const todaysWorkout = WORKOUTS[todaysWorkoutId];
+const isSunday = dayOfWeek === 'sunday';
 ---
+
+<Layout title="Dashboard" activeNav="calendar">
+  <div class="space-y-8">
+
+    <!-- Hero Section -->
+    <section class="card-glow p-8 text-center relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent pointer-events-none"></div>
+      <p class="text-sm uppercase tracking-widest mb-2" style="color: var(--text-muted)">{todayFormatted}</p>
+      <h1 class="text-4xl md:text-5xl font-black gradient-text mb-4">
+        {isSunday ? 'Meal Prep Day' : todaysWorkout?.name || 'Rest Day'}
+      </h1>
+      {!isSunday && todaysWorkout && todaysWorkoutId !== 'rest_day' && (
+        <p class="text-lg mb-6" style="color: var(--text-secondary)">{todaysWorkout.duration} • {todaysWorkout.focus}</p>
+      )}
+      <a
+        href={isSunday ? '/meal-prep' : todaysWorkoutId !== 'rest_day' ? `/workout?id=${todaysWorkoutId}` : '/spark'}
+        class="btn btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
+      >
+        {isSunday ? 'Start Meal Prep' : todaysWorkoutId !== 'rest_day' ? 'Start Workout' : 'Daily Spark'}
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </a>
+    </section>
+
+    <!-- Daily Targets with Progress Rings -->
+    <section>
+      <h2 class="section-title">Daily Targets</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Protein Ring -->
+        <div class="card text-center relative">
+          <div class="relative inline-block">
+            <svg class="progress-ring w-24 h-24 md:w-32 md:h-32" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" cx="60" cy="60" r="50" fill="none" stroke-width="10" />
+              <circle
+                id="protein-ring"
+                class="progress-ring__fill-green progress-ring__circle"
+                cx="60" cy="60" r="50"
+                fill="none"
+                stroke-width="10"
+                stroke-dasharray="314"
+                stroke-dashoffset="314"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="protein-value" class="text-2xl md:text-3xl font-black gradient-text-green counter">0</span>
+              <span class="text-xs" style="color: var(--text-muted)">/ {DAILY_TARGETS.protein}g</span>
+            </div>
+          </div>
+          <p class="mt-3 font-semibold" style="color: var(--text-secondary)">Protein</p>
+        </div>
+
+        <!-- Calories Ring -->
+        <div class="card text-center relative">
+          <div class="relative inline-block">
+            <svg class="progress-ring w-24 h-24 md:w-32 md:h-32" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" cx="60" cy="60" r="50" fill="none" stroke-width="10" />
+              <circle
+                id="calories-ring"
+                class="progress-ring__fill progress-ring__circle"
+                cx="60" cy="60" r="50"
+                fill="none"
+                stroke-width="10"
+                stroke-dasharray="314"
+                stroke-dashoffset="314"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="calories-value" class="text-2xl md:text-3xl font-black gradient-text counter">0</span>
+              <span class="text-xs" style="color: var(--text-muted)">cal</span>
+            </div>
+          </div>
+          <p class="mt-3 font-semibold" style="color: var(--text-secondary)">Calories</p>
+        </div>
+
+        <!-- Water Ring -->
+        <div class="card text-center relative">
+          <div class="relative inline-block">
+            <svg class="progress-ring w-24 h-24 md:w-32 md:h-32" viewBox="0 0 120 120">
+              <circle class="progress-ring__bg" cx="60" cy="60" r="50" fill="none" stroke-width="10" />
+              <circle
+                id="water-ring"
+                class="progress-ring__fill-cyan progress-ring__circle"
+                cx="60" cy="60" r="50"
+                fill="none"
+                stroke-width="10"
+                stroke-dasharray="314"
+                stroke-dashoffset="314"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="water-value" class="text-2xl md:text-3xl font-black gradient-text-cyan counter">0</span>
+              <span class="text-xs" style="color: var(--text-muted)">/ 1 gal</span>
+            </div>
+          </div>
+          <p class="mt-3 font-semibold" style="color: var(--text-secondary)">Water</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weekly Calendar -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title mb-0">This Week</h2>
+        <a href="/spark" class="text-sm hover:text-[var(--brand-orange)] transition-colors" style="color: var(--text-muted)">
+          Daily Spark →
+        </a>
+      </div>
+      <div class="grid grid-cols-7 gap-2">
+        {thisWeek.map((day) => (
+          <a
+            href={day.isMealPrep ? '/meal-prep' : day.workout ? `/workout?id=${day.workout.id}` : '#'}
+            class={`calendar-cell ${
+              day.isToday ? 'calendar-cell--today' : ''
+            } ${
+              day.isMealPrep ? 'calendar-cell--prep' :
+              day.workout ? 'calendar-cell--workout' :
+              'calendar-cell--rest'
+            }`}
+          >
+            <div class="text-[10px] font-bold uppercase" style="color: var(--text-muted)">{day.dayName}</div>
+            <div class={`text-xl font-black ${day.isToday ? 'gradient-text-cyan' : ''}`}>{day.dayNum}</div>
+            <div class="mt-auto">
+              {day.isMealPrep && <span class="text-xs font-semibold gradient-text-green">Prep</span>}
+              {day.workout && <span class="text-xs font-semibold gradient-text">{day.workout.name.split(' ')[0]}</span>}
+              {day.isRest && <span class="text-xs" style="color: var(--text-muted)">Rest</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Next Week Preview -->
+    <section>
+      <h2 class="section-title">Next Week</h2>
+      <div class="grid grid-cols-7 gap-2">
+        {nextWeek.map((day) => (
+          <a
+            href={day.isMealPrep ? '/meal-prep' : day.workout ? `/workout?id=${day.workout.id}` : '#'}
+            class={`calendar-cell ${
+              day.isMealPrep ? 'calendar-cell--prep' :
+              day.workout ? 'calendar-cell--workout' :
+              'calendar-cell--rest'
+            }`}
+          >
+            <div class="text-[10px] font-bold uppercase" style="color: var(--text-muted)">{day.dayName}</div>
+            <div class="text-xl font-black">{day.dayNum}</div>
+            <div class="mt-auto">
+              {day.isMealPrep && <span class="text-xs font-semibold gradient-text-green">Prep</span>}
+              {day.workout && <span class="text-xs font-semibold gradient-text">{day.workout.name.split(' ')[0]}</span>}
+              {day.isRest && <span class="text-xs" style="color: var(--text-muted)">Rest</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Quick Stats -->
+    <section>
+      <h2 class="section-title">Quick Stats</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="stat-card">
+          <div class="stat-value counter" id="workouts-count">0</div>
+          <div class="stat-label">Workouts This Week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value stat-value-green counter" id="streak-stat">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value stat-value-cyan counter" id="weight-stat">--</div>
+          <div class="stat-label">Current Weight</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value counter" id="protein-avg">0</div>
+          <div class="stat-label">Avg Protein (7d)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section>
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <a href="/nutrition" class="card group flex items-center gap-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl" style="background: var(--bg-secondary)">
+            🍗
+          </div>
+          <div>
+            <div class="font-semibold group-hover:text-[var(--brand-orange)] transition-colors">Track Nutrition</div>
+            <div class="text-sm" style="color: var(--text-muted)">Log meals & water</div>
+          </div>
+          <svg class="w-5 h-5 ml-auto" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+        <a href="/metrics" class="card group flex items-center gap-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl" style="background: var(--bg-secondary)">
+            📊
+          </div>
+          <div>
+            <div class="font-semibold group-hover:text-[var(--brand-orange)] transition-colors">View Progress</div>
+            <div class="text-sm" style="color: var(--text-muted)">Charts & metrics</div>
+          </div>
+          <svg class="w-5 h-5 ml-auto" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+  </div>
+</Layout>
+
+<script>
+  // Animated counter function
+  function animateCounter(element: HTMLElement, target: number, duration: number = 1000, suffix: string = '') {
+    const start = 0;
+    const startTime = performance.now();
+
+    function update(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(start + (target - start) * easeOut);
+      element.textContent = current + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // Update progress ring
+  function updateRing(ringId: string, percent: number) {
+    const ring = document.getElementById(ringId);
+    if (ring) {
+      const circumference = 314; // 2 * PI * 50
+      const offset = circumference - (percent / 100) * circumference;
+      ring.style.strokeDashoffset = String(offset);
+    }
+  }
+
+  // Load dashboard data
+  async function loadDashboard() {
+    // Load nutrition data
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const nutritionRes = await fetch(`/api/nutrition?date=${today}`);
+      const nutritionData = await nutritionRes.json();
+      const nutrition = nutritionData.nutrition || { calories: 0, protein: 0 };
+
+      // Protein
+      const proteinEl = document.getElementById('protein-value');
+      if (proteinEl) animateCounter(proteinEl, nutrition.protein || 0, 1000, 'g');
+      updateRing('protein-ring', Math.min(100, ((nutrition.protein || 0) / 200) * 100));
+
+      // Calories
+      const caloriesEl = document.getElementById('calories-value');
+      if (caloriesEl) animateCounter(caloriesEl, nutrition.calories || 0, 1000);
+      updateRing('calories-ring', Math.min(100, ((nutrition.calories || 0) / 2000) * 100));
+
+      // Avg protein (mock for now)
+      const proteinAvgEl = document.getElementById('protein-avg');
+      if (proteinAvgEl) animateCounter(proteinAvgEl, Math.floor((nutrition.protein || 0) * 0.85), 1000, 'g');
+    } catch (err) {
+      console.error('Failed to load nutrition:', err);
+    }
+
+    // Load water data
+    try {
+      const waterRes = await fetch(`/api/water?date=${today}`);
+      const waterData = await waterRes.json();
+      const waterLiters = waterData.total || 0;
+      const waterEl = document.getElementById('water-value');
+      if (waterEl) animateCounter(waterEl, Math.round(waterLiters * 10) / 10, 1000, 'L');
+      updateRing('water-ring', Math.min(100, (waterLiters / 3.8) * 100));
+    } catch (err) {
+      console.error('Failed to load water:', err);
+    }
+
+    // Load streak
+    try {
+      const streakRes = await fetch('/api/streak');
+      const streakData = await streakRes.json();
+      const streakEl = document.getElementById('streak-stat');
+      if (streakEl) animateCounter(streakEl, streakData.current_streak || 0, 1000);
+    } catch (err) {
+      console.error('Failed to load streak:', err);
+    }
+
+    // Load weight (most recent from metrics)
+    try {
+      const metricsRes = await fetch('/api/metrics');
+      const metricsData = await metricsRes.json();
+      const weightEl = document.getElementById('weight-stat');
+      if (weightEl && metricsData.metrics?.length > 0) {
+        const latest = metricsData.metrics[0];
+        weightEl.textContent = `${latest.weight} lbs`;
+      }
+    } catch (err) {
+      console.error('Failed to load metrics:', err);
+    }
+
+    // Workouts this week (mock)
+    const workoutsEl = document.getElementById('workouts-count');
+    if (workoutsEl) animateCounter(workoutsEl, 2, 1000);
+  }
+
+  // Initialize
+  loadDashboard();
+</script>
+
+<style>
+  .calendar-cell {
+    min-height: 90px;
+  }
+
+  @media (max-width: 640px) {
+    .calendar-cell {
+      min-height: 70px;
+      padding: 0.5rem;
+    }
+  }
+</style>
